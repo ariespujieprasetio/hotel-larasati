@@ -1,0 +1,17 @@
+project_id = "hotel-larasati"
+
+[db]
+major_version = 17
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+enable_signup = false
+
+[auth.email]
+enable_signup = false
+enable_confirmations = true

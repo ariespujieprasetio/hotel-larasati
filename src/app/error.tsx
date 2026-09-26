@@ -1,0 +1,19 @@
+"use client";
+import { Button } from "@/components/ui/button";
+export default function ErrorPage({
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  return (
+    <main className="mx-auto max-w-lg p-8">
+      <h1 className="text-2xl font-semibold">We couldn’t load this page</h1>
+      <p className="my-4 text-muted-foreground">
+        Please try again. If the problem continues, ask your administrator to
+        check the connection and database setup.
+      </p>
+      <Button onClick={reset}>Try again</Button>
+    </main>
+  );
+}
