@@ -11,6 +11,10 @@ import {
 } from "@/lib/validations/rooms";
 export type SaveResult = { error: string } | { id: string };
 function databaseError(error: PostgrestError): string {
+  if (error.message.includes("ROOM_HAS_RESERVATIONS"))
+    return "Reassign or cancel active reservations before blocking or changing this room.";
+  if (error.message.includes("CAPACITY_HAS_RESERVATIONS"))
+    return "Existing bookings exceed this capacity. Reassign them first.";
   if (error.code === "23505")
     return "That room number or room type name already exists, including inactive records.";
   if (error.message.includes("ROOM_TYPE_IN_USE"))

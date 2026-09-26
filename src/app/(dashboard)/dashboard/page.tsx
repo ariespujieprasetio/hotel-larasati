@@ -58,9 +58,8 @@ export default async function DashboardPage() {
             </p>
             <h2 className="mt-2 text-xl font-semibold">{hotel.hotel_name}</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-white/75">
-              Secure sign-in and hotel configuration are in place. Reservation,
-              and financial workflows will be added in the following
-              implementation phases.
+              Room, guest and reservation management are ready. Check-in and
+              financial workflows will follow in the next implementation phases.
             </p>
           </div>
         </div>
@@ -181,8 +180,8 @@ export default async function DashboardPage() {
               detail: "Date-based availability and reservation assignment.",
             },
             {
-              title: "Guest & reservation workflows",
-              detail: "Guest records, bookings, and front office.",
+              title: "Check-in & check-out",
+              detail: "Guest arrivals, stays, and departures.",
             },
             {
               title: "Hotel operations",

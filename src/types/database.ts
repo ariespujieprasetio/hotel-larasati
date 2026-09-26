@@ -1,3 +1,16 @@
+import type {
+  Reservation,
+  ReservationPreview,
+  ReservationActivity,
+} from "@/types/reservations";
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+import type { Guest, GuestActivity } from "@/types/guests";
 import type { Room, RoomType, RoomActivity } from "@/types/rooms";
 import type { RoomStatus } from "@/lib/rooms";
 export type Role =
@@ -39,6 +52,13 @@ type Table<Row, Insert> = {
 export type Database = {
   public: {
     Tables: {
+      reservations: Table<Reservation, never>;
+      reservation_activity: Table<ReservationActivity, never>;
+      guests: Table<
+        Guest,
+        Pick<Guest, "full_name"> & Partial<Omit<Guest, "full_name">>
+      >;
+      guest_activity: Table<GuestActivity, never>;
       profiles: Table<
         Profile,
         Pick<Profile, "id" | "full_name" | "email"> &
@@ -61,6 +81,20 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      reservation_preview: {
+        Args: { p_data: Json };
+        Returns: ReservationPreview;
+      };
+      save_reservation: { Args: { p_data: Json }; Returns: string };
+      set_reservation_status: {
+        Args: {
+          p_id: string;
+          p_version: number;
+          p_status: string;
+          p_reason: string;
+        };
+        Returns: string;
+      };
       current_staff_role: { Args: Record<string, never>; Returns: Role | null };
     };
     Enums: { staff_role: Role; room_status: RoomStatus };

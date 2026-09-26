@@ -32,6 +32,11 @@ const all: Role[] = [
   "HOUSEKEEPING",
   "FINANCE",
 ];
+const activeRoutes: Record<string, string> = {
+  Rooms: "/rooms",
+  "Guest list": "/guests",
+  Reservations: "/reservations",
+};
 const navigation = [
   {
     title: "Front office",
@@ -126,21 +131,23 @@ function Sidebar({
                   )
                   .map((item) => (
                     <li key={item}>
-                      {item === "Rooms" ? (
+                      {Boolean(activeRoutes[item]) ? (
                         <Link
-                          href="/rooms"
+                          href={activeRoutes[item]}
                           onClick={onNavigate}
                           aria-current={
-                            pathname.startsWith("/rooms") ? "page" : undefined
+                            pathname.startsWith(activeRoutes[item])
+                              ? "page"
+                              : undefined
                           }
                           className={
                             "block rounded-lg px-3 py-2 text-sm " +
-                            (pathname.startsWith("/rooms")
+                            (pathname.startsWith(activeRoutes[item])
                               ? "bg-white/10 text-white"
                               : "text-white/80 hover:bg-white/5")
                           }
                         >
-                          Rooms
+                          {item}
                         </Link>
                       ) : (
                         <span
@@ -214,7 +221,13 @@ export function DashboardShell({
               <span className="hidden sm:inline">Workspace</span>
               <ChevronRight className="hidden size-3 sm:block" />
               <span className="font-medium text-foreground">
-                {pathname.startsWith("/rooms") ? "Rooms" : "Dashboard"}
+                {pathname.startsWith("/rooms")
+                  ? "Rooms"
+                  : pathname.startsWith("/guests")
+                    ? "Guests"
+                    : pathname.startsWith("/reservations")
+                      ? "Reservations"
+                      : "Dashboard"}
               </span>
             </p>
           </div>

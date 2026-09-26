@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "next typegen \u0026\u0026 tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "tsx --test tests/*.test.ts"
@@ -32,6 +32,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -45,6 +46,6 @@
     "typescript": "^5"
   },
   "engines": {
-    "node": "\u003e=22.13.0"
+    "node": ">=22.13.0"
   }
 }

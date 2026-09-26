@@ -10,7 +10,9 @@ export async function proxy(request: NextRequest) {
   if (!config) {
     if (
       request.nextUrl.pathname.startsWith("/dashboard") ||
-      request.nextUrl.pathname.startsWith("/rooms")
+      request.nextUrl.pathname.startsWith("/rooms") ||
+      request.nextUrl.pathname.startsWith("/guests") ||
+      request.nextUrl.pathname.startsWith("/reservations")
     ) {
       const redirect = NextResponse.redirect(new URL("/login", request.url));
       redirect.headers.set("Cache-Control", "private, no-store");
@@ -40,7 +42,9 @@ export async function proxy(request: NextRequest) {
   if (
     (error || !data.user) &&
     (request.nextUrl.pathname.startsWith("/dashboard") ||
-      request.nextUrl.pathname.startsWith("/rooms"))
+      request.nextUrl.pathname.startsWith("/rooms") ||
+      request.nextUrl.pathname.startsWith("/guests") ||
+      request.nextUrl.pathname.startsWith("/reservations"))
   ) {
     const redirect = NextResponse.redirect(new URL("/login", request.url));
     response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
@@ -50,5 +54,11 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 export const config = {
-  matcher: ["/dashboard/:path*", "/rooms/:path*", "/login"],
+  matcher: [
+    "/dashboard/:path*",
+    "/rooms/:path*",
+    "/guests/:path*",
+    "/reservations/:path*",
+    "/login",
+  ],
 };
