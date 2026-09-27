@@ -254,3 +254,13 @@ Apply only supabase/migrations/202609280001_hotel_settings.sql, then open Manage
 Contact changes appear on newly printed bills, including existing folios. Room taxes/service affect new or repriced quotes, while saved reservation/folio amounts remain unchanged. Changing the currency code does not convert room type prices; management must review prices before new bookings. Prefix changes affect new reservation numbers only. Times are configuration defaults and do not change the date-based check-in rules. Logo uploads and invoice numbering are not part of this screen.
 
 Manual check: update contact details, print an old folio, verify financial amounts did not change; edit settings in two tabs and reject the stale save; verify operational staff cannot update settings. Tests cover version increments, stale writes, manager access, front-office denial and input validation, alongside existing permission and quote snapshot tests.
+
+## Room maintenance
+
+Apply supabase/migrations/202609280002_maintenance.sql, then open Maintenance. OWNER/MANAGER/FRONT_OFFICE/HOUSEKEEPING may report issues for active rooms, including occupied rooms. Enter an exact room number, title, description and priority. Identical request retries create one report; check the list after a reload before resubmitting.
+
+OWNER/MANAGER assign active owners, managers or housekeeping staff, start work, append notes and verify completion with a resolution note. Assigned housekeeping staff can start work and append notes but cannot approve completion, reassign or cancel. Front office can report/read only. Finance, inactive and anonymous users cannot access this module. Status flow is OPEN -> IN_PROGRESS -> COMPLETED; management can cancel open work with a reason. Closed work is retained and cannot be edited/reopened. All changes record actor/time, version checks reject stale updates, and direct client writes are forbidden. Lists and history paginate 20 rows.
+
+Reports track work only and never change room availability. Management must separately review Rooms and block a vacant room as MAINTENANCE/OUT_OF_ORDER; existing reservations and occupancy guards still apply. After repair, review cleaning/inspection before releasing the room. No technician role, external contractor directory, automatic room blocking or repair-expense accounting is introduced.
+
+Manual acceptance: report an issue, assign housekeeping, start and add a note as that cleaner, approve completion as manager, verify history and completed filter. Test stale updates in two tabs and denied finance/other-assignee writes. Local SQL tests cover request retries, permission boundaries, versions, completion and unchanged inventory.

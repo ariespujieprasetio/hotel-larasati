@@ -1,3 +1,4 @@
+import type { MaintenanceTask, MaintenanceActivity } from "@/types/maintenance";
 import type { FolioPrint } from "@/types/folio-print";
 import type { DashboardSummary } from "@/types/dashboard";
 import type {
@@ -63,6 +64,8 @@ type Table<Row, Insert> = {
 export type Database = {
   public: {
     Tables: {
+      maintenance_tasks: Table<MaintenanceTask, never>;
+      maintenance_activity: Table<MaintenanceActivity, never>;
       folio_extras: Table<FolioExtra, never>;
       staff_activity: Table<StaffActivity, never>;
       housekeeping_tasks: Table<HousekeepingTask, never>;
@@ -99,6 +102,31 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      maintenance_staff: {
+        Args: Record<string, never>;
+        Returns: { id: string; full_name: string }[];
+      };
+      create_maintenance: {
+        Args: {
+          p_request: string;
+          p_room: string;
+          p_title: string;
+          p_description: string;
+          p_priority: string;
+        };
+        Returns: string;
+      };
+      update_maintenance: {
+        Args: {
+          p_id: string;
+          p_version: number;
+          p_action: string;
+          p_assignee: string | null;
+          p_note: string;
+        };
+        Returns: string;
+      };
+
       folio_print: { Args: { p_id: string }; Returns: FolioPrint | null };
       add_folio_extra: {
         Args: {
