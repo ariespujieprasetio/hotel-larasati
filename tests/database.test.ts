@@ -43,8 +43,67 @@ test(
         "guests.sql",
         "reservations.sql",
         "check_in.sql",
+        "billing_checkout.sql",
       ])
         await runSql("supabase/tests/" + name);
+    } finally {
+      await db.close();
+    }
+  },
+);
+
+test(
+  "Billing migration backfills a previously checked-in guest without inventing payments",
+  { timeout: 120000 },
+  async () => {
+    const db = new PGlite({ extensions: { btree_gist } });
+    try {
+      await db.exec(`
+ create role anon; create role authenticated;
+ create schema auth;
+ create table auth.users(id uuid primary key default gen_random_uuid(),email text,raw_user_meta_data jsonb default '{}');
+ create function auth.uid() returns uuid language sql stable as $$
+ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid;
+ $$;
+ grant usage on schema auth,public to authenticated,anon;
+ grant execute on function auth.uid() to authenticated,anon;
+ `);
+      const migrations = (await readdir("supabase/migrations"))
+        .filter((p) => p.endsWith(".sql"))
+        .sort();
+      const billing = "202609270004_billing_checkout.sql";
+      for (const name of migrations.filter((n) => n < billing))
+        await db.exec(
+          (await readFile("supabase/migrations/" + name, "utf8")).replace(
+            /^\uFEFF/,
+            "",
+          ),
+        );
+      await db.exec(`
+ insert into auth.users(id,email) values('70000000-0000-4000-8000-000000000001','migration@example.invalid');
+ update public.profiles set is_active=true,role='OWNER';
+ select set_config('request.jwt.claim.sub','70000000-0000-4000-8000-000000000001',false);
+ insert into public.guests(id,full_name) values('70000000-0000-4000-8000-000000000010','Existing guest');
+ insert into public.room_types(id,name,base_price,capacity,bed_type) values('70000000-0000-4000-8000-000000000020','Existing type',125000,2,'Twin');
+ insert into public.rooms(room_number,room_type_id) values('EXIST-1','70000000-0000-4000-8000-000000000020');
+ do $$
+ declare booking uuid; d jsonb; today date:=(now() at time zone 'Asia/Jakarta')::date;
+ begin
+ d:=jsonb_build_object('guest_id','70000000-0000-4000-8000-000000000010','room_type_id','70000000-0000-4000-8000-000000000020',
+ 'check_in_date',today,'check_out_date',today+1,'adults',1,'children',0,'discount_amount',0,'source','DIRECT','status','CONFIRMED','expected_total',125000,'expected_currency','IDR');
+ booking:=public.save_reservation(d);
+ perform public.check_in_reservation(booking,1);
+ end; $$;
+ `);
+      await db.exec(await readFile("supabase/migrations/" + billing, "utf8"));
+      await db.exec(`
+ do $$ begin
+ if (select count(*) from public.folios)<>1 or not exists(select 1 from public.folios where guest_name='Existing guest' and total_amount=125000 and paid_amount=0 and balance=125000 and closed_at is null)
+ then raise exception 'Existing guest folio incorrect'; end if;
+ if exists(select 1 from public.payments) then raise exception 'Migration invented payment'; end if;
+ if not exists(select 1 from public.rooms where status='OCCUPIED') then raise exception 'Migration changed occupancy'; end if;
+ end; $$;
+ `);
     } finally {
       await db.close();
     }

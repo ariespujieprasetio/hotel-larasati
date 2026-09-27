@@ -5,4 +5,5 @@ export type Stay = {
   checked_in_at: string;
   checked_in_by: string;
   checked_out_at: string | null;
+  checked_out_by: string | null;
 };

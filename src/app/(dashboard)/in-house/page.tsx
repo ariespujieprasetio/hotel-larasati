@@ -23,9 +23,12 @@ export default async function InHousePage({
         </p>
       )}
       <p className="text-muted-foreground">
-        {count} occupied rooms. Arrival times shown in WIB. Checkout and billing
-        will be available in the next phase.
+        {count} occupied rooms. Arrival times shown in WIB. Open Check-out to
+        settle a bill and record departure.
       </p>
+      <Link href="/check-out" className="underline">
+        Review departures & bills
+      </Link>
       <div className="divide-y rounded-xl border bg-card">
         {!stays.length && (
           <p className="p-6">No guests currently checked in.</p>

@@ -98,6 +98,17 @@ export default async function ReservationDetail({
         </section>
         <aside className="space-y-6 rounded-xl border bg-card p-6">
           <ReservationStatusForm key={r.version} reservation={r} />
+          {["CHECKED_IN", "CHECKED_OUT"].includes(r.status) && (
+            <Link
+              className="block underline"
+              href={
+                "/folios?status=all&q=" +
+                encodeURIComponent(r.reservation_number)
+              }
+            >
+              Open guest bill
+            </Link>
+          )}
           {r.status === "CONFIRMED" && (
             <CheckInForm
               key={"arrival-" + r.version}
@@ -112,8 +123,8 @@ export default async function ReservationDetail({
             </Link>
           )}
           <p className="text-sm text-muted-foreground">
-            Confirm the booking before checking in. Folio, payments and checkout
-            will be available in the next phase.
+            Confirm the booking before checking in. After arrival, open the
+            guest bill to record payments and check out.
           </p>
         </aside>
       </div>

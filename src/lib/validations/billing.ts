@@ -1,0 +1,37 @@
+import { z } from "zod";
+import { paymentMethods } from "@/lib/billing";
+export const paymentSchema = z
+  .object({
+    folioId: z.uuid(),
+    requestId: z.uuid(),
+    amount: z
+      .string()
+      .trim()
+      .regex(
+        /^\d{1,12}(\.\d{1,2})?$/,
+        "Enter a positive amount with at most two decimals.",
+      )
+      .transform(Number)
+      .refine(
+        (n) => n > 0 && n <= 999999999999.99,
+        "Enter a positive payment amount.",
+      ),
+    method: z.enum(paymentMethods),
+    reference: z.string().trim().max(150),
+  })
+  .refine((v) => v.method === "CASH" || v.reference.length >= 3, {
+    message: "Enter the bank, card or QRIS transaction reference.",
+    path: ["reference"],
+  });
+export const reversalSchema = z.object({
+  paymentId: z.uuid(),
+  reason: z
+    .string()
+    .trim()
+    .min(3, "Enter a reason with at least 3 characters.")
+    .max(500),
+});
+export const checkoutSchema = z.object({
+  folioId: z.uuid(),
+  version: z.number().int().positive(),
+});

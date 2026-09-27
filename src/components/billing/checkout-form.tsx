@@ -1,0 +1,65 @@
+"use client";
+import { useState, useTransition } from "react";
+import { useRouter, unstable_rethrow } from "next/navigation";
+import { checkOut } from "@/app/(dashboard)/folios/actions";
+import { Button } from "@/components/ui/button";
+export function CheckoutForm({
+  folioId,
+  version,
+  balance,
+}: {
+  folioId: string;
+  version: number;
+  balance: number;
+}) {
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState("");
+  const router = useRouter();
+  return (
+    <form
+      className="space-y-3"
+      onSubmit={(e) => {
+        e.preventDefault();
+        setError("");
+        startTransition(async () => {
+          try {
+            const result = await checkOut({ folioId, version });
+            if ("error" in result) setError(result.error);
+            else {
+              router.replace("/folios/" + folioId + "?checkedOut=1");
+              router.refresh();
+            }
+          } catch (e) {
+            unstable_rethrow(e);
+            setError("Unable to confirm check-out. Reload the bill.");
+          }
+        });
+      }}
+    >
+      <h2 className="text-xl font-semibold">Check-out</h2>
+      <p className="text-sm text-muted-foreground">
+        Check-out closes this bill and marks the room DIRTY. The agreed
+        reservation total is retained for early or late departure; no extra
+        charges or refunds are calculated.
+      </p>
+      {balance > 0 ? (
+        <p className="text-sm text-amber-800">
+          Settle the balance before check-out.
+        </p>
+      ) : (
+        <label className="flex items-start gap-2 text-sm">
+          <input type="checkbox" required disabled={pending} className="mt-1" />
+          I reviewed the final bill and confirm the guest has departed.
+        </label>
+      )}
+      {error && (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
+      <Button disabled={pending || balance !== 0}>
+        {pending ? "Checking out..." : "Complete check-out"}
+      </Button>
+    </form>
+  );
+}

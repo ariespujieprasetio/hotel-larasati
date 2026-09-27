@@ -12,6 +12,9 @@ export async function proxy(request: NextRequest) {
       request.nextUrl.pathname.startsWith("/dashboard") ||
       request.nextUrl.pathname.startsWith("/rooms") ||
       request.nextUrl.pathname.startsWith("/guests") ||
+      request.nextUrl.pathname.startsWith("/folios") ||
+      request.nextUrl.pathname.startsWith("/payments") ||
+      request.nextUrl.pathname.startsWith("/check-out") ||
       request.nextUrl.pathname.startsWith("/check-in") ||
       request.nextUrl.pathname.startsWith("/in-house") ||
       request.nextUrl.pathname.startsWith("/reservations")
@@ -46,6 +49,9 @@ export async function proxy(request: NextRequest) {
     (request.nextUrl.pathname.startsWith("/dashboard") ||
       request.nextUrl.pathname.startsWith("/rooms") ||
       request.nextUrl.pathname.startsWith("/guests") ||
+      request.nextUrl.pathname.startsWith("/folios") ||
+      request.nextUrl.pathname.startsWith("/payments") ||
+      request.nextUrl.pathname.startsWith("/check-out") ||
       request.nextUrl.pathname.startsWith("/check-in") ||
       request.nextUrl.pathname.startsWith("/in-house") ||
       request.nextUrl.pathname.startsWith("/reservations"))
@@ -64,6 +70,9 @@ export const config = {
     "/guests/:path*",
     "/reservations/:path*",
     "/check-in/:path*",
+    "/check-out/:path*",
+    "/folios/:path*",
+    "/payments/:path*",
     "/in-house/:path*",
     "/login",
   ],

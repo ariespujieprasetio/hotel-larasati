@@ -39,7 +39,7 @@ Without environment variables, the login page displays setup instructions and di
 - Typed initial database schema, singleton hotel settings, timestamps, constraints, signup/email-sync triggers, and RLS.
 - Form validation using Zod and React Hook Form, loading/error states, reusable shadcn components.
 
-Room, guest, reservation and check-in management are implemented. Checkout, billing, housekeeping-task and report modules remain upcoming. Sidebar entries marked Soon are not links. Recharts and date-fns are installed for later phases. No service-role client exists.
+Room, guest, reservation, check-in, room billing, payment recording and checkout are implemented. Extra charges, refunds, housekeeping-task and report modules remain upcoming. Sidebar entries marked Soon are not links. Recharts and date-fns are installed for later phases. No service-role client exists.
 
 ## Files and responsibilities
 
@@ -136,9 +136,9 @@ Rules:
 - Reassign or cancel active bookings before deactivating their guest, changing/blocking their room, or reducing room-type capacity below booked party sizes.
 - Direct client writes to reservation tables are forbidden. RPCs recheck active staff roles; audit records are written atomically.
 
-Checkout, deposits, payments and folios are the next phase. Creating a reservation does not check a guest in or record revenue.
+Creating a reservation does not check a guest in or record a payment. Room folios open at check-in after applying the billing migration.
 
-`npm test` now runs a local PGlite PostgreSQL harness with a minimal Supabase Auth fixture. It applies all migrations and runs all five SQL suites, including exclusion constraints, quote tampering, rate snapshots, sold-out inventory, same-day turnover, role denial and stale edits. This is a development test dependency only; the application still uses Supabase. The harness does not simulate Supabase's hosted Auth service or multi-session concurrency/load. The exclusion constraint provides the database overlap guarantee.
+`npm test` now runs a local PGlite PostgreSQL harness with a minimal Supabase Auth fixture. It applies all migrations and runs all six SQL suites, including exclusion constraints, quote tampering, rate snapshots, sold-out inventory, same-day turnover, role denial and stale edits. This is a development test dependency only; the application still uses Supabase. The harness does not simulate Supabase's hosted Auth service or multi-session concurrency/load. The exclusion constraint provides the database overlap guarantee.
 
 After migration, run the entire `supabase/tests/reservations.sql` on a disposable development Supabase database as postgres. Fixtures roll back. For a manual concurrency check, use two staff sessions to select the same room/dates and submit both; exactly one should succeed. Also test auto-assignment when the room type is sold out, cancellation followed by rebooking, and the guest's booking history.
 
@@ -153,6 +153,25 @@ Open **Check-in**, review a confirmed reservation, verify the guest and room ass
 - Only active AVAILABLE or INSPECTED rooms qualify. CLEAN rooms must complete inspection first. Guest and room type must remain active.
 - The RPC atomically inserts a stay, changes the reservation to CHECKED_IN, updates the room to OCCUPIED, and records existing reservation/room audits. It preserves the agreed booking prices and dates, including late arrivals.
 - A unique open-stay index prevents simultaneous physical occupants even after the scheduled departure date. Repeated requests and stale booking versions are rejected. There are no direct client stay writes or manual occupied-room releases.
-- In-house guests shows actual arrival time and scheduled departure, including overdue departures. Lists paginate 20 records at a time. Checkout, room moves, folios and payments are not implemented in this phase; check-in does not record revenue.
+- In-house guests shows actual arrival time and scheduled departure, including overdue departures. Lists paginate 20 records at a time. Checkout and room folios become available after the billing migration below. Room moves are not yet implemented; check-in does not record a payment.
 
 Run `npm test` for the local PostgreSQL suite, or run the entire `supabase/tests/check_in.sql` in a disposable development database as postgres. Fixtures roll back. Tests cover pending/future/stale/duplicate check-ins, dirty-room rejection and rollback, successful arrival and audit, role restrictions, and a prior guest overstaying. The local harness does not simulate concurrent sessions; for hosted acceptance, submit the same check-in from two staff sessions and verify only one stay exists.
+
+## Room billing, payments and checkout
+
+Apply only `supabase/migrations/202609270004_billing_checkout.sql`. It creates a room folio for every existing CHECKED_IN reservation with the agreed charges and a zero paid amount. Future check-ins create the same folio atomically. No payment is inferred from a reservation.
+
+Open **Check-out** or **Folios / Billing**, review the room bill, record money already received, and complete checkout when the balance is zero. The **Payments** menu shows the recorded receipts and reversal entries. Partial payments are supported using CASH, BANK_TRANSFER, CARD or QRIS. Non-cash entries require a transaction reference. These are accounting records only: the application does not initiate or verify bank/card/QRIS transfers.
+
+- Folios snapshot the guest name, room number, reservation number, currency and agreed room charges (including discount, service and tax). FINANCE can read bills/payments and record payments without gaining guest identity/contact or reservation access.
+- OWNER/MANAGER/FRONT_OFFICE/FINANCE record payments. Only OWNER/MANAGER reverse an incorrect entry, with a required reason. Reversal creates an additional record and retains the original; it does not issue a refund. Closed bills cannot be changed.
+- Amounts and balances use PostgreSQL numeric arithmetic. Zero/negative payments, sub-cent amounts and overpayments are rejected. Direct client writes to bills/payments are forbidden.
+- Each form submission has a request UUID. Retrying the same payment with the same key and details is idempotent, including after checkout. Changed details with a reused key are rejected. The browser preserves the key for retries in the same mounted form; after reloading or switching devices, inspect payment history before recording again.
+- Only OWNER/MANAGER/FRONT_OFFICE can check out. The RPC locks the reservation, bill and inventory, checks the reviewed bill version and zero balance, closes the stay/bill, marks the reservation CHECKED_OUT, and makes the room DIRTY in one transaction. Checkout staff/time and reservation/room audits are retained.
+- The agreed room total remains unchanged for early or late departure. This phase has no automatic late fees, extra services, pre-arrival deposits, refunds, invoice PDF or room moves. The checkout form explicitly asks staff to review this final bill.
+- Rooms then follow DIRTY ? CLEANING ? CLEAN ? INSPECTED ? AVAILABLE. The room cannot be checked in again while DIRTY.
+- Closed bills remain accessible using the Closed/All filter. Lists paginate 20 records; a bill displays its latest 200 ledger entries, while Payments provides the full paginated history.
+
+Validation: `npm test` includes the six PostgreSQL rollback suites, payment input tests, and a separate upgrade test for an already checked-in guest. Run the whole `supabase/tests/billing_checkout.sql` on a disposable development database as postgres for hosted database checks. Also run typecheck, lint, format:check and build.
+
+Manual acceptance: try checkout with a balance; record a partial payment; reverse it as OWNER/MANAGER; settle the remaining amount; complete checkout; verify the guest disappears from In-house, reservation is CHECKED_OUT, room is DIRTY, and closed bill cannot receive new payments. Verify FINANCE cannot check out or reverse entries. For concurrency acceptance on hosted Supabase, submit competing payments from two sessions and confirm the total never exceeds the bill, then test checkout against a simultaneous reversal. Local PGlite tests exercise constraints and stale-version handling, not multi-session load.

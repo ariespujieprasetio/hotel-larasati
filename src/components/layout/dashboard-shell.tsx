@@ -37,6 +37,9 @@ const activeRoutes: Record<string, string> = {
   "Guest list": "/guests",
   Reservations: "/reservations",
   "Check-in": "/check-in",
+  "Check-out": "/check-out",
+  "Folios / Billing": "/folios",
+  Payments: "/payments",
   "In-house guests": "/in-house",
 };
 const navigation = [
