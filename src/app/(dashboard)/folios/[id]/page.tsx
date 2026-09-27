@@ -40,6 +40,12 @@ export default async function FolioPage({
           Check-out complete. The room is now DIRTY and ready for housekeeping.
         </p>
       )}
+      <Link
+        href={"/folios/" + id + "/print"}
+        className="inline-block rounded-md border px-4 py-2 text-sm font-medium"
+      >
+        Print / Save PDF
+      </Link>
       <header>
         <h1 className="text-3xl font-semibold">{f.folio_number}</h1>
         <p className="mt-2 text-muted-foreground">

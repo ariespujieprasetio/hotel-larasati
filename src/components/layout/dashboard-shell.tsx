@@ -187,6 +187,8 @@ export function DashboardShell({
 }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  if (pathname.startsWith("/folios/") && pathname.endsWith("/print"))
+    return <main id="main-content">{children}</main>;
   return (
     <div className="min-h-screen">
       <a

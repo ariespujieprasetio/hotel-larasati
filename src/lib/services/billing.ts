@@ -85,3 +85,15 @@ export async function getFolioExtras(id: string, page: number) {
     );
   return { extras: data ?? [], count: count ?? 0 };
 }
+
+export async function getPrintableFolio(id: string) {
+  if (!z.uuid().safeParse(id).success) notFound();
+  const { supabase } = await requireRole(billingRoles);
+  const { data, error } = await supabase.rpc("folio_print", { p_id: id });
+  if (error)
+    throw new Error(
+      "Printable bill could not be loaded. Apply the folio print migration and retry.",
+    );
+  if (!data) notFound();
+  return data;
+}

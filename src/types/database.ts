@@ -1,3 +1,4 @@
+import type { FolioPrint } from "@/types/folio-print";
 import type { DashboardSummary } from "@/types/dashboard";
 import type {
   Reservation,
@@ -97,6 +98,7 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      folio_print: { Args: { p_id: string }; Returns: FolioPrint | null };
       add_folio_extra: {
         Args: {
           p_folio: string;
