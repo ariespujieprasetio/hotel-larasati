@@ -8,6 +8,7 @@ import type {
   HousekeepingTask,
   HousekeepingActivity,
 } from "@/types/housekeeping";
+import type { StaffActivity } from "@/types/staff";
 import type { Stay } from "@/types/stays";
 export type Json =
   | string
@@ -22,6 +23,7 @@ import type { RoomStatus } from "@/lib/rooms";
 export type Role =
   "OWNER" | "MANAGER" | "FRONT_OFFICE" | "HOUSEKEEPING" | "FINANCE";
 export type Profile = {
+  version: number;
   id: string;
   full_name: string;
   email: string;
@@ -58,6 +60,7 @@ type Table<Row, Insert> = {
 export type Database = {
   public: {
     Tables: {
+      staff_activity: Table<StaffActivity, never>;
       housekeeping_tasks: Table<HousekeepingTask, never>;
       housekeeping_activity: Table<HousekeepingActivity, never>;
       folios: Table<Folio, never>;
@@ -92,6 +95,18 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      update_staff_profile: {
+        Args: {
+          p_id: string;
+          p_version: number;
+          p_full_name: string;
+          p_phone: string;
+          p_role: Role;
+          p_active: boolean;
+        };
+        Returns: string;
+      };
+
       housekeeping_staff: {
         Args: Record<string, never>;
         Returns: { id: string; full_name: string }[];

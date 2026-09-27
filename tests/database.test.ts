@@ -45,6 +45,7 @@ test(
         "check_in.sql",
         "billing_checkout.sql",
         "housekeeping.sql",
+        "staff.sql",
       ])
         await runSql("supabase/tests/" + name);
     } finally {
@@ -122,6 +123,22 @@ test(
  then raise exception 'Existing cleaning task not imported'; end if;
  if exists(select 1 from public.housekeeping_tasks where room_number='EXIST-1') then raise exception 'Occupied room given cleaning job'; end if;
  if (select count(*) from public.housekeeping_activity)<>1 then raise exception 'Backfill invented cleaning history'; end if;
+ end; $$;
+ `);
+
+      await db.exec(
+        await readFile(
+          "supabase/migrations/202609270006_staff_management.sql",
+          "utf8",
+        ),
+      );
+      await db.exec(`
+ do $$ begin
+ if (select active_owners from public.staff_owner_guard)<>1 then raise exception 'Existing owner count incorrect'; end if;
+ begin
+ perform public.update_staff_profile(auth.uid(),1,'Existing owner','','OWNER',false);
+ raise exception 'Existing last owner was disabled';
+ exception when raise_exception then if sqlerrm<>'LAST_ACTIVE_OWNER' then raise; end if; end;
  end; $$;
  `);
     } finally {

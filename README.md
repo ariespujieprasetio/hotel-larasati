@@ -39,7 +39,7 @@ Without environment variables, the login page displays setup instructions and di
 - Typed initial database schema, singleton hotel settings, timestamps, constraints, signup/email-sync triggers, and RLS.
 - Form validation using Zod and React Hook Form, loading/error states, reusable shadcn components.
 
-Room, guest, reservation, check-in, room billing, payment recording and checkout are implemented. Housekeeping assignments, notes and work history are also implemented. Extra charges, refunds, maintenance-task and report modules remain upcoming. Sidebar entries marked Soon are not links. Recharts and date-fns are installed for later phases. No service-role client exists.
+Room, guest, reservation, check-in, room billing, payment recording and checkout are implemented. Housekeeping assignments, notes and work history are also implemented. Extra charges, refunds, maintenance-task and report modules remain upcoming. Sidebar entries marked Soon are not links. Recharts and date-fns are installed for later phases. A separate server-only admin client is used only to create staff Auth accounts; application data writes still use the authenticated staff session.
 
 ## Files and responsibilities
 
@@ -62,7 +62,7 @@ Room, guest, reservation, check-in, room billing, payment recording and checkout
 | Other profiles | Active OWNER / MANAGER                             | Active OWNER only      |
 | Hotel settings | All active staff                                   | Active OWNER / MANAGER |
 
-The self-profile read allows the app to explain inactive access. Inactive staff cannot access settings or the dashboard. Clients cannot insert/delete profiles or settings, mutate profile IDs/email/timestamps, or self-assign roles. Supabase Auth creates profiles. Email changes sync from Auth. Owners administer profiles through trusted tooling until the user-management phase. Avoid deactivating the last owner; recover via trusted SQL if necessary. Database RLS remains authoritative even when requests bypass the UI.
+The self-profile read allows the app to explain inactive access. Inactive staff cannot access settings or the dashboard. Clients cannot insert/delete profiles or settings, mutate profile IDs/email/timestamps, or self-assign roles. Supabase Auth creates profiles. Email changes sync from Auth. Owners administer roles and active status from Users after the staff-management migration. The staff-management migration prevents deactivating, demoting or deleting the last active owner. Database RLS remains authoritative even when requests bypass the UI.
 
 Hotel defaults are IDR, check-in 14:00, check-out 12:00, and tax/service charge 0%. Confirm these with hotel management before operational use. Display dates use Asia/Jakarta.
 
@@ -138,7 +138,7 @@ Rules:
 
 Creating a reservation does not check a guest in or record a payment. Room folios open at check-in after applying the billing migration.
 
-`npm test` now runs a local PGlite PostgreSQL harness with a minimal Supabase Auth fixture. It applies all migrations and runs all seven SQL suites, including exclusion constraints, quote tampering, rate snapshots, sold-out inventory, same-day turnover, role denial and stale edits. This is a development test dependency only; the application still uses Supabase. The harness does not simulate Supabase's hosted Auth service or multi-session concurrency/load. The exclusion constraint provides the database overlap guarantee.
+`npm test` now runs a local PGlite PostgreSQL harness with a minimal Supabase Auth fixture. It applies all migrations and runs all eight SQL suites, including exclusion constraints, quote tampering, rate snapshots, sold-out inventory, same-day turnover, role denial and stale edits. This is a development test dependency only; the application still uses Supabase. The harness does not simulate Supabase's hosted Auth service or multi-session concurrency/load. The exclusion constraint provides the database overlap guarantee.
 
 After migration, run the entire `supabase/tests/reservations.sql` on a disposable development Supabase database as postgres. Fixtures roll back. For a manual concurrency check, use two staff sessions to select the same room/dates and submit both; exactly one should succeed. Also test auto-assignment when the room type is sold out, cancellation followed by rebooking, and the guest's booking history.
 
@@ -172,7 +172,7 @@ Open **Check-out** or **Folios / Billing**, review the room bill, record money a
 - Rooms then follow DIRTY -> CLEANING -> CLEAN -> INSPECTED -> AVAILABLE. The room cannot be checked in again while DIRTY.
 - Closed bills remain accessible using the Closed/All filter. Lists paginate 20 records; a bill displays its latest 200 ledger entries, while Payments provides the full paginated history.
 
-Validation: `npm test` includes the seven PostgreSQL rollback suites, payment input tests, and a separate upgrade test for an already checked-in guest. Run the whole `supabase/tests/billing_checkout.sql` on a disposable development database as postgres for hosted database checks. Also run typecheck, lint, format:check and build.
+Validation: `npm test` includes the eight PostgreSQL rollback suites, payment input tests, and a separate upgrade test for an already checked-in guest. Run the whole `supabase/tests/billing_checkout.sql` on a disposable development database as postgres for hosted database checks. Also run typecheck, lint, format:check and build.
 
 Manual acceptance: try checkout with a balance; record a partial payment; reverse it as OWNER/MANAGER; settle the remaining amount; complete checkout; verify the guest disappears from In-house, reservation is CHECKED_OUT, room is DIRTY, and closed bill cannot receive new payments. Verify FINANCE cannot check out or reverse entries. For concurrency acceptance on hosted Supabase, submit competing payments from two sessions and confirm the total never exceeds the bill, then test checkout against a simultaneous reversal. Local PGlite tests exercise constraints and stale-version handling, not multi-session load.
 
@@ -193,3 +193,32 @@ Open **Housekeeping**, filter by room, stage or assignment, and open a job. OWNE
 Run `npm test` or the entire `supabase/tests/housekeeping.sql` in a disposable development database. Tests cover assignments, stale versions, notes, direct-room bypass denial, cleaning progression, completed/cancelled history, automatic checkout jobs and role restrictions. The upgrade test covers preexisting dirty and occupied rooms.
 
 Manual check: checkout a guest; open their DIRTY job; assign a cleaner (or progress it as manager); move through all four steps; verify the room becomes AVAILABLE and the job moves to Completed. Try a second housekeeping account on an assigned job to verify denial.
+
+## Staff management
+
+Apply only `supabase/migrations/202609270006_staff_management.sql`. Then open **Management -> Users**. OWNER can edit names/phone, roles and active status; MANAGER can review accounts and activity but cannot change them. Other roles cannot access staff management. Existing profiles need no recreation.
+
+Creating a new Auth account from the app additionally requires a server-only key from the same Supabase project:
+
+```dotenv
+SUPABASE_SECRET_KEY=YOUR_SUPABASE_SECRET_KEY
+```
+
+Set it in `.env.local` for local development or in the hosting server environment, then restart Next.js. Never prefix this variable with NEXT_PUBLIC_. A Supabase secret key (sb_secret_...) or legacy service_role key can be used here. Keep the existing public URL and anon/publishable key unchanged. See [Supabase API keys](https://supabase.com/docs/guides/getting-started/api-keys) and [Auth admin createUser](https://supabase.com/docs/reference/javascript/auth-admin-createuser).
+
+The key is optional for listing/updating existing staff. Without it, create the Auth user through Supabase Authentication, then set their role and activate them using Users. No production key or account was created by this implementation.
+
+**Add staff** defaults to HOUSEKEEPING. Enter the name, verified staff email, an initial password, optional phone, role and active status. Passwords require at least 12 characters and at most 72 UTF-8 bytes; the hosted Supabase password policy may impose additional requirements. Give credentials directly to the intended staff member. Account creation confirms the email after the owner's explicit verification checkbox; it sends no invitation. Password reset, mandatory first-login password changes, Auth email changes and deletion are not implemented here.
+
+Provisioning is deliberately two steps because Auth and database calls are separate transactions:
+
+1. An authorized OWNER creates the Auth account using the isolated server-only admin client. Auth's database trigger creates an inactive FRONT_OFFICE profile.
+2. The owner's normal session configures the role/status through the authorized profile RPC. If this step cannot be confirmed, the app links to the created profile for review instead of deleting the account or retrying creation. The initial profile has no operational access until activation succeeds. After an interrupted response, check Users/Supabase before retrying.
+
+Profile updates use a version check. A private database counter serializes changes to active owners and prevents removing the last one, including direct profile writes and Auth deletion cascades. An empty new database still allows the initial owner bootstrap. Each profile change records the actor, time and changed field names, without copying passwords or personal field values. Accounts that predate the migration have no invented historical events.
+
+Inactive profiles lose operational access through the existing server/profile and database role checks, even if the Auth token has not expired. Open housekeeping assignments are retained; reassign them as management. Staff-name snapshots in old task history are preserved. The UI prevents changing your own role/status; ask another owner to do so.
+
+Validation: `npm test` covers the eight SQL suites, last-owner protection, manager/cleaner/inactive/anonymous denial, stale updates, housekeeping roster activation, password input limits, and upgrading an existing owner. Run the whole `supabase/tests/staff.sql` only on a disposable development database: it temporarily isolates owner fixtures and rolls everything back. The local harness does not call hosted Supabase Auth or simulate multi-session concurrency.
+
+Manual acceptance with configured credentials: create a HOUSEKEEPING account; confirm it appears in assignments; log in as that staff member; deny Users access; deactivate the account and verify operational access stops. Test a duplicate email, two edit tabs and last-owner demotion. If no secret key is configured, verify the setup message and that editing an existing staff account still works.

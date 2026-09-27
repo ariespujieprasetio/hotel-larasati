@@ -148,6 +148,9 @@ do $$ begin
  if not exists(select 1 from public.rooms where room_number='BILL-1' and status='AVAILABLE') then raise exception 'Cleaning after checkout failed'; end if;
 end; $$;
 reset role;
+-- Keep a second owner while testing inactive-account denial.
+insert into auth.users(id,email) values('60000000-0000-4000-8000-000000000099','backup-owner@billing.invalid');
+update public.profiles set role='OWNER',is_active=true where email='backup-owner@billing.invalid';
 update public.profiles set is_active=false where email='owner@billing.invalid';
 set local role authenticated;
 select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000001',true);
