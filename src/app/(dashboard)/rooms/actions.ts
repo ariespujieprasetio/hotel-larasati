@@ -11,6 +11,8 @@ import {
 } from "@/lib/validations/rooms";
 export type SaveResult = { error: string } | { id: string };
 function databaseError(error: PostgrestError): string {
+  if (error.message.includes("TASK_ASSIGNED_TO_OTHER"))
+    return "This cleaning task is assigned to another staff member. Ask management to reassign it.";
   if (error.message.includes("ROOM_HAS_RESERVATIONS"))
     return "Reassign or cancel active reservations before blocking or changing this room.";
   if (error.message.includes("CAPACITY_HAS_RESERVATIONS"))
@@ -32,6 +34,7 @@ function databaseError(error: PostgrestError): string {
   return "The change could not be saved. Check the database setup and try again.";
 }
 function refreshRooms(id?: string) {
+  revalidatePath("/housekeeping", "layout");
   revalidatePath("/rooms", "layout");
   if (id) revalidatePath("/rooms/" + id);
 }

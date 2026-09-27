@@ -44,6 +44,7 @@ test(
         "reservations.sql",
         "check_in.sql",
         "billing_checkout.sql",
+        "housekeeping.sql",
       ])
         await runSql("supabase/tests/" + name);
     } finally {
@@ -53,7 +54,7 @@ test(
 );
 
 test(
-  "Billing migration backfills a previously checked-in guest without inventing payments",
+  "Operational migrations backfill bills and cleaning jobs without changing occupancy",
   { timeout: 120000 },
   async () => {
     const db = new PGlite({ extensions: { btree_gist } });
@@ -102,6 +103,25 @@ test(
  then raise exception 'Existing guest folio incorrect'; end if;
  if exists(select 1 from public.payments) then raise exception 'Migration invented payment'; end if;
  if not exists(select 1 from public.rooms where status='OCCUPIED') then raise exception 'Migration changed occupancy'; end if;
+ end; $$;
+ `);
+
+      await db.exec(`
+ insert into public.rooms(room_number,room_type_id) values('DIRTY-2','70000000-0000-4000-8000-000000000020');
+ update public.rooms set status='DIRTY' where room_number='DIRTY-2';
+ `);
+      await db.exec(
+        await readFile(
+          "supabase/migrations/202609270005_housekeeping.sql",
+          "utf8",
+        ),
+      );
+      await db.exec(`
+ do $$ begin
+ if (select count(*) from public.housekeeping_tasks)<>1 or not exists(select 1 from public.housekeeping_tasks where room_number='DIRTY-2' and status='DIRTY' and assigned_to is null and closed_at is null)
+ then raise exception 'Existing cleaning task not imported'; end if;
+ if exists(select 1 from public.housekeeping_tasks where room_number='EXIST-1') then raise exception 'Occupied room given cleaning job'; end if;
+ if (select count(*) from public.housekeeping_activity)<>1 then raise exception 'Backfill invented cleaning history'; end if;
  end; $$;
  `);
     } finally {

@@ -58,8 +58,8 @@ export default async function DashboardPage() {
             </p>
             <h2 className="mt-2 text-xl font-semibold">{hotel.hotel_name}</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-white/75">
-              Rooms, guests, reservations, check-in, room bills and checkout are
-              ready.
+              Rooms, guests, reservations, check-in, room bills, checkout and
+              housekeeping are ready.
             </p>
           </div>
         </div>
@@ -186,7 +186,7 @@ export default async function DashboardPage() {
             },
             {
               title: "Hotel operations",
-              detail: "Housekeeping tasks, maintenance, and reporting.",
+              detail: "Maintenance tasks and operational reporting.",
             },
           ].map((item) => (
             <div key={item.title} className="rounded-xl border p-4">

@@ -34,6 +34,7 @@ const all: Role[] = [
 ];
 const activeRoutes: Record<string, string> = {
   Rooms: "/rooms",
+  Housekeeping: "/housekeeping",
   "Guest list": "/guests",
   Reservations: "/reservations",
   "Check-in": "/check-in",

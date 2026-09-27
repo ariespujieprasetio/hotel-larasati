@@ -10,6 +10,7 @@ export async function proxy(request: NextRequest) {
   if (!config) {
     if (
       request.nextUrl.pathname.startsWith("/dashboard") ||
+      request.nextUrl.pathname.startsWith("/housekeeping") ||
       request.nextUrl.pathname.startsWith("/rooms") ||
       request.nextUrl.pathname.startsWith("/guests") ||
       request.nextUrl.pathname.startsWith("/folios") ||
@@ -47,6 +48,7 @@ export async function proxy(request: NextRequest) {
   if (
     (error || !data.user) &&
     (request.nextUrl.pathname.startsWith("/dashboard") ||
+      request.nextUrl.pathname.startsWith("/housekeeping") ||
       request.nextUrl.pathname.startsWith("/rooms") ||
       request.nextUrl.pathname.startsWith("/guests") ||
       request.nextUrl.pathname.startsWith("/folios") ||
@@ -67,6 +69,7 @@ export const config = {
   matcher: [
     "/dashboard/:path*",
     "/rooms/:path*",
+    "/housekeeping/:path*",
     "/guests/:path*",
     "/reservations/:path*",
     "/check-in/:path*",

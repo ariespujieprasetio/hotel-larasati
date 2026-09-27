@@ -39,7 +39,7 @@ Without environment variables, the login page displays setup instructions and di
 - Typed initial database schema, singleton hotel settings, timestamps, constraints, signup/email-sync triggers, and RLS.
 - Form validation using Zod and React Hook Form, loading/error states, reusable shadcn components.
 
-Room, guest, reservation, check-in, room billing, payment recording and checkout are implemented. Extra charges, refunds, housekeeping-task and report modules remain upcoming. Sidebar entries marked Soon are not links. Recharts and date-fns are installed for later phases. No service-role client exists.
+Room, guest, reservation, check-in, room billing, payment recording and checkout are implemented. Housekeeping assignments, notes and work history are also implemented. Extra charges, refunds, maintenance-task and report modules remain upcoming. Sidebar entries marked Soon are not links. Recharts and date-fns are installed for later phases. No service-role client exists.
 
 ## Files and responsibilities
 
@@ -138,7 +138,7 @@ Rules:
 
 Creating a reservation does not check a guest in or record a payment. Room folios open at check-in after applying the billing migration.
 
-`npm test` now runs a local PGlite PostgreSQL harness with a minimal Supabase Auth fixture. It applies all migrations and runs all six SQL suites, including exclusion constraints, quote tampering, rate snapshots, sold-out inventory, same-day turnover, role denial and stale edits. This is a development test dependency only; the application still uses Supabase. The harness does not simulate Supabase's hosted Auth service or multi-session concurrency/load. The exclusion constraint provides the database overlap guarantee.
+`npm test` now runs a local PGlite PostgreSQL harness with a minimal Supabase Auth fixture. It applies all migrations and runs all seven SQL suites, including exclusion constraints, quote tampering, rate snapshots, sold-out inventory, same-day turnover, role denial and stale edits. This is a development test dependency only; the application still uses Supabase. The harness does not simulate Supabase's hosted Auth service or multi-session concurrency/load. The exclusion constraint provides the database overlap guarantee.
 
 After migration, run the entire `supabase/tests/reservations.sql` on a disposable development Supabase database as postgres. Fixtures roll back. For a manual concurrency check, use two staff sessions to select the same room/dates and submit both; exactly one should succeed. Also test auto-assignment when the room type is sold out, cancellation followed by rebooking, and the guest's booking history.
 
@@ -169,9 +169,27 @@ Open **Check-out** or **Folios / Billing**, review the room bill, record money a
 - Each form submission has a request UUID. Retrying the same payment with the same key and details is idempotent, including after checkout. Changed details with a reused key are rejected. The browser preserves the key for retries in the same mounted form; after reloading or switching devices, inspect payment history before recording again.
 - Only OWNER/MANAGER/FRONT_OFFICE can check out. The RPC locks the reservation, bill and inventory, checks the reviewed bill version and zero balance, closes the stay/bill, marks the reservation CHECKED_OUT, and makes the room DIRTY in one transaction. Checkout staff/time and reservation/room audits are retained.
 - The agreed room total remains unchanged for early or late departure. This phase has no automatic late fees, extra services, pre-arrival deposits, refunds, invoice PDF or room moves. The checkout form explicitly asks staff to review this final bill.
-- Rooms then follow DIRTY ? CLEANING ? CLEAN ? INSPECTED ? AVAILABLE. The room cannot be checked in again while DIRTY.
+- Rooms then follow DIRTY -> CLEANING -> CLEAN -> INSPECTED -> AVAILABLE. The room cannot be checked in again while DIRTY.
 - Closed bills remain accessible using the Closed/All filter. Lists paginate 20 records; a bill displays its latest 200 ledger entries, while Payments provides the full paginated history.
 
-Validation: `npm test` includes the six PostgreSQL rollback suites, payment input tests, and a separate upgrade test for an already checked-in guest. Run the whole `supabase/tests/billing_checkout.sql` on a disposable development database as postgres for hosted database checks. Also run typecheck, lint, format:check and build.
+Validation: `npm test` includes the seven PostgreSQL rollback suites, payment input tests, and a separate upgrade test for an already checked-in guest. Run the whole `supabase/tests/billing_checkout.sql` on a disposable development database as postgres for hosted database checks. Also run typecheck, lint, format:check and build.
 
 Manual acceptance: try checkout with a balance; record a partial payment; reverse it as OWNER/MANAGER; settle the remaining amount; complete checkout; verify the guest disappears from In-house, reservation is CHECKED_OUT, room is DIRTY, and closed bill cannot receive new payments. Verify FINANCE cannot check out or reverse entries. For concurrency acceptance on hosted Supabase, submit competing payments from two sessions and confirm the total never exceeds the bill, then test checkout against a simultaneous reversal. Local PGlite tests exercise constraints and stale-version handling, not multi-session load.
+
+## Housekeeping jobs
+
+Apply only `supabase/migrations/202609270005_housekeeping.sql`. Existing active DIRTY, CLEANING, CLEAN and INSPECTED rooms receive a job at their current stage; occupied/available rooms do not. No past cleaning work is fabricated.
+
+Open **Housekeeping**, filter by room, stage or assignment, and open a job. OWNER/MANAGER assign active HOUSEKEEPING staff or leave jobs unassigned. A housekeeping staff member can take an unassigned job, or progress it to claim it while working. Management can also perform cleaning steps without an assigned cleaner.
+
+- Room status remains authoritative: DIRTY -> CLEANING -> CLEAN -> INSPECTED -> AVAILABLE. Housekeeping staff retain their existing inspection permission; a separate supervisor approval step is not imposed.
+- Staff cannot work on another cleaner's assigned job, including through direct room updates. Management can reassign the job. Deactivated assignees must be reassigned by management.
+- Notes are appended to job history with actor/time. Changes from Rooms also synchronize task status. Version checks reject stale task submissions.
+- Checkout creates a new DIRTY job automatically. AVAILABLE completes the job; check-in from INSPECTED also completes it. Blocking/deactivating the room cancels the open job. A subsequent cleaning cycle gets a new job and retains old history.
+- One open job per room is enforced in PostgreSQL. Direct task/history writes are denied; transactional RPCs and room triggers apply changes.
+- OWNER/MANAGER/HOUSEKEEPING/FRONT_OFFICE can read job history. FRONT_OFFICE is read-only; FINANCE, inactive and anonymous users have no access. The assignment directory exposes only active housekeeping IDs and names, without changing profile read policies.
+- Lists paginate 20 jobs; details show the latest 50 history events. Use Completed/Cancelled filters to review closed work.
+
+Run `npm test` or the entire `supabase/tests/housekeeping.sql` in a disposable development database. Tests cover assignments, stale versions, notes, direct-room bypass denial, cleaning progression, completed/cancelled history, automatic checkout jobs and role restrictions. The upgrade test covers preexisting dirty and occupied rooms.
+
+Manual check: checkout a guest; open their DIRTY job; assign a cleaner (or progress it as manager); move through all four steps; verify the room becomes AVAILABLE and the job moves to Completed. Try a second housekeeping account on an assigned job to verify denial.

@@ -37,6 +37,7 @@ function refreshBilling() {
     "/payments",
     "/check-out",
     "/in-house",
+    "/housekeeping",
     "/rooms",
     "/reservations",
     "/guests",

@@ -4,6 +4,10 @@ import type {
   ReservationActivity,
 } from "@/types/reservations";
 import type { Folio, Payment } from "@/types/billing";
+import type {
+  HousekeepingTask,
+  HousekeepingActivity,
+} from "@/types/housekeeping";
 import type { Stay } from "@/types/stays";
 export type Json =
   | string
@@ -54,6 +58,8 @@ type Table<Row, Insert> = {
 export type Database = {
   public: {
     Tables: {
+      housekeeping_tasks: Table<HousekeepingTask, never>;
+      housekeeping_activity: Table<HousekeepingActivity, never>;
       folios: Table<Folio, never>;
       payments: Table<Payment, never>;
       stays: Table<Stay, never>;
@@ -86,6 +92,21 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      housekeeping_staff: {
+        Args: Record<string, never>;
+        Returns: { id: string; full_name: string }[];
+      };
+      update_housekeeping_task: {
+        Args: {
+          p_id: string;
+          p_version: number;
+          p_action: string;
+          p_assignee: string | null;
+          p_note: string;
+        };
+        Returns: string;
+      };
+
       record_payment: {
         Args: {
           p_folio: string;

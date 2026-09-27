@@ -46,6 +46,7 @@ export async function checkIn(
       "/guests",
       "/check-in",
       "/in-house",
+      "/housekeeping",
     ])
       revalidatePath(path, "layout");
     revalidatePath("/dashboard");
