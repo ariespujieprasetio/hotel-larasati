@@ -33,6 +33,7 @@ const all: Role[] = [
   "FINANCE",
 ];
 const activeRoutes: Record<string, string> = {
+  Settings: "/settings",
   Users: "/users",
   Rooms: "/rooms",
   Housekeeping: "/housekeeping",

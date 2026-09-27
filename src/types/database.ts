@@ -37,6 +37,7 @@ export type Profile = {
   updated_at: string;
 };
 export type HotelSettings = {
+  version: number;
   id: string;
   hotel_name: string;
   address: string | null;
