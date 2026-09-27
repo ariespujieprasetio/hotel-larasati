@@ -1,6 +1,7 @@
+import { ExtraForm, VoidExtraForm } from "@/components/billing/extra-form";
 import Link from "next/link";
-import { getFolio } from "@/lib/services/billing";
-import { billingDate } from "@/lib/billing";
+import { getFolio, getFolioExtras } from "@/lib/services/billing";
+import { billingDate, billingPage } from "@/lib/billing";
 import { money, reservationRoles } from "@/lib/reservations";
 import { QuoteSummary } from "@/components/reservations/summary";
 import { PaymentForm } from "@/components/billing/payment-form";
@@ -12,12 +13,19 @@ export default async function FolioPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ checkedOut?: string }>;
+  searchParams: Promise<{ checkedOut?: string; extrasPage?: string }>;
 }) {
   const { id } = await params;
   const [{ folio: f, payments, paymentCount, role }, query] = await Promise.all(
     [getFolio(id), searchParams],
   );
+  const extrasPage = billingPage(query.extrasPage);
+  const { extras, count: extraCount } = await getFolioExtras(id, extrasPage);
+  const roomTotal =
+    Number(f.charges.room_subtotal) -
+    Number(f.charges.discount_amount) +
+    Number(f.charges.service_amount) +
+    Number(f.charges.tax_amount);
   const reversals = new Set(payments.map((p) => p.reversal_of).filter(Boolean));
   return (
     <div className="space-y-6">
@@ -50,10 +58,24 @@ export default async function FolioPage({
             quote={{
               ...f.charges,
               currency: f.currency,
-              total_amount: f.total_amount,
+              total_amount: roomTotal,
             }}
           />
           <dl className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <dt className="text-sm text-muted-foreground">
+                Active extra charges
+              </dt>
+              <dd className="text-xl font-semibold">
+                {money(f.total_amount - roomTotal, f.currency)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm text-muted-foreground">Total bill</dt>
+              <dd className="text-xl font-semibold">
+                {money(f.total_amount, f.currency)}
+              </dd>
+            </div>
             <div>
               <dt className="text-sm text-muted-foreground">Net payments</dt>
               <dd className="text-xl font-semibold">
@@ -76,12 +98,19 @@ export default async function FolioPage({
             </Link>
           )}
           <p className="text-sm text-muted-foreground">
-            This bill covers the saved room charges, discount, service charge
-            and tax. Extras, deposits before arrival, and refund processing are
-            not available yet.
+            Room prices stay as agreed. Extra charges are added at their final
+            price. Pre-arrival deposits and refund processing are not available
+            yet.
           </p>
         </section>
         <aside className="space-y-6 rounded-xl border bg-card p-6">
+          {!f.closed_at && (
+            <ExtraForm
+              folioId={f.id}
+              version={f.version}
+              currency={f.currency}
+            />
+          )}
           {!f.closed_at && f.balance > 0 && (
             <PaymentForm
               folioId={f.id}
@@ -111,6 +140,59 @@ export default async function FolioPage({
           )}
         </aside>
       </div>
+      <section className="rounded-xl border bg-card p-6">
+        <h2 className="text-xl font-semibold">Extra charge history</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {extraCount} entries, including cancelled charges &middot; Page{" "}
+          {extrasPage}
+        </p>
+        {!extras.length && (
+          <p className="mt-4 text-sm">No extra charges on this page.</p>
+        )}
+        <ul className="divide-y">
+          {extras.map((item) => (
+            <li key={item.id} className="space-y-2 py-4">
+              <p className="font-medium">
+                {item.description} &middot; {money(item.amount, f.currency)}{" "}
+                {item.voided_at && "(Cancelled)"}
+              </p>
+              <p className="text-sm">
+                {item.quantity} x {money(item.unit_price, f.currency)} &middot;{" "}
+                {billingDate(item.created_at)} WIB
+              </p>
+              <p className="break-all text-xs text-muted-foreground">
+                Entry: {item.id} &middot; Staff: {item.created_by}
+              </p>
+              {item.voided_at && (
+                <p className="text-sm">
+                  Cancelled {billingDate(item.voided_at)} WIB by{" "}
+                  {item.voided_by}: {item.void_reason}
+                </p>
+              )}
+              {!f.closed_at &&
+                !item.voided_at &&
+                ["OWNER", "MANAGER"].includes(role) && (
+                  <VoidExtraForm extraId={item.id} version={f.version} />
+                )}
+            </li>
+          ))}
+        </ul>
+        <nav
+          aria-label="Extra charge pages"
+          className="mt-4 flex gap-4 text-sm underline"
+        >
+          {extrasPage > 1 && (
+            <Link href={"/folios/" + f.id + "?extrasPage=" + (extrasPage - 1)}>
+              Previous charges
+            </Link>
+          )}
+          {extrasPage * 20 < extraCount && (
+            <Link href={"/folios/" + f.id + "?extrasPage=" + (extrasPage + 1)}>
+              Next charges
+            </Link>
+          )}
+        </nav>
+      </section>
       <section className="rounded-xl border bg-card p-6">
         <h2 className="text-xl font-semibold">Payment history</h2>
         <p className="mt-1 text-sm text-muted-foreground">

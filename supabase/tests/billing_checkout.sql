@@ -174,5 +174,56 @@ do $$ begin
  exception when insufficient_privilege then null; end;
 end; $$;
 reset role;
+
+-- Dashboard integration uses these real booking, checkout and payment fixtures.
+select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000099',true);
+set local role authenticated;
+do $$
+declare d jsonb; expected numeric; actual numeric;
+begin
+ d:=public.dashboard_summary();
+ if (d->>'date')::date<>(now() at time zone 'Asia/Jakarta')::date then raise exception 'Dashboard date incorrect'; end if;
+ if (d->'rooms'->>'active')::int<>(select count(*) from public.rooms where is_active) then raise exception 'Dashboard room count incorrect'; end if;
+ if not(d ? 'bookings' and d ? 'payments' and d ? 'housekeeping') then raise exception 'Owner dashboard incomplete'; end if;
+ select coalesce(sum(case when kind='PAYMENT' then amount else -amount end),0) into expected from public.payments;
+ select coalesce(sum((value->>'net')::numeric),0) into actual from jsonb_array_elements(d->'payments');
+ if expected<>actual then raise exception 'Dashboard net ignores reversals'; end if;
+end; $$;
+reset role;
+-- Move every receipt out of the window, then place reversals exactly at midnight.
+update public.payments set created_at=((now() at time zone 'Asia/Jakarta')::date+1)::timestamp at time zone 'Asia/Jakarta';
+update public.payments set created_at=(now() at time zone 'Asia/Jakarta')::date::timestamp at time zone 'Asia/Jakarta' where kind='REVERSAL';
+set local role authenticated;
+do $$
+declare d jsonb; actual numeric; expected numeric;
+begin
+ d:=public.dashboard_summary();
+ select coalesce(sum((value->>'net')::numeric),0) into actual from jsonb_array_elements(d->'payments');
+ select -coalesce(sum(amount),0) into expected from public.payments where kind='REVERSAL';
+ if expected>=0 or actual<>expected then raise exception 'Jakarta midnight boundary or negative net incorrect'; end if;
+end; $$;
+select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000004',true);
+do $$ declare d jsonb; begin
+ d:=public.dashboard_summary();
+ if d ? 'payments' or d ? 'bookings' or not(d ? 'rooms') then raise exception 'Housekeeping dashboard access incorrect'; end if;
+end; $$;
+reset role;
+update public.profiles set role='FINANCE' where id='60000000-0000-4000-8000-000000000004';
+set local role authenticated;
+do $$ declare d jsonb; begin
+ d:=public.dashboard_summary();
+ if d ? 'rooms' or d ? 'bookings' or d ? 'housekeeping' or not(d ? 'payments') then raise exception 'Finance dashboard access incorrect'; end if;
+end; $$;
+select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000001',true);
+do $$ begin
+ begin perform public.dashboard_summary(); raise exception 'Inactive dashboard allowed'; exception when insufficient_privilege then null; end;
+end; $$;
+reset role;
+set local role anon;
+do $$ begin
+ begin perform public.dashboard_summary(); raise exception 'Anonymous dashboard allowed'; exception when insufficient_privilege then null; end;
+end; $$;
+reset role;
+
 rollback;
 select 'Billing and checkout checks passed; fixtures rolled back.' as result;

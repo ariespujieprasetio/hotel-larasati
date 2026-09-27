@@ -1,14 +1,5 @@
-import {
-  CalendarDays,
-  Clock3,
-  Building2,
-  ArrowUpRight,
-  ShieldCheck,
-  BedDouble,
-  LogIn,
-  LogOut,
-  Wallet,
-} from "lucide-react";
+import Link from "next/link";
+import { getDashboardSummary } from "@/lib/services/dashboard";
 import { getHotelSettings } from "@/lib/services/hotel";
 import { requireStaff } from "@/lib/services/auth";
 import {
@@ -18,192 +9,203 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 export const metadata = { title: "Dashboard" };
 export default async function DashboardPage() {
-  const [{ profile }, hotel] = await Promise.all([
+  const [{ profile }, hotel, data] = await Promise.all([
     requireStaff(),
     getHotelSettings(),
+    getDashboardSummary(),
   ]);
-  const date = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Jakarta",
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date());
+  const rooms = data.rooms;
+  const bookings = data.bookings;
+  const cleaning = data.housekeeping;
+  const metrics = [
+    ...(rooms
+      ? [
+          {
+            title: "Occupied rooms",
+            value: rooms.occupied,
+            detail: rooms.active
+              ? ((rooms.occupied / rooms.active) * 100).toFixed(1) +
+                "% of " +
+                rooms.active +
+                " active rooms"
+              : "No active rooms yet",
+            href: "/rooms",
+          },
+          {
+            title: "Ready rooms",
+            value: rooms.ready,
+            detail:
+              "Available or inspected; " + rooms.blocked + " rooms blocked",
+            href: "/rooms",
+          },
+        ]
+      : []),
+    ...(bookings
+      ? [
+          {
+            title: "Today's arrivals",
+            value: bookings.arrivals,
+            detail:
+              bookings.awaiting + " pending or confirmed arrivals remaining",
+            href: "/check-in",
+          },
+          {
+            title: "Today's departures",
+            value: bookings.departures,
+            detail:
+              bookings.due +
+              " still in house; " +
+              bookings.overdue +
+              " overdue departures",
+            href: "/check-out",
+          },
+        ]
+      : []),
+    ...(cleaning
+      ? [
+          {
+            title: "Open housekeeping jobs",
+            value: cleaning.open,
+            detail:
+              cleaning.unassigned +
+              " unassigned; " +
+              cleaning.mine +
+              " assigned to you",
+            href: "/housekeeping",
+          },
+        ]
+      : []),
+  ];
   return (
     <div className="space-y-7">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="mb-2 text-sm text-muted-foreground">{date} · WIB</p>
-          <h1 className="text-3xl font-semibold tracking-tight">
+          <p className="text-sm text-muted-foreground">
+            {hotel.hotel_name} &middot; {data.date} &middot; WIB
+          </p>
+          <h1 className="mt-2 text-3xl font-semibold">
             Welcome, {profile.full_name.split(" ")[0]}.
           </h1>
           <p className="mt-2 text-muted-foreground">
-            Your hotel workspace is ready for its next chapter.
+            Your hotel operations today.
           </p>
         </div>
-        <Badge variant="outline" className="gap-2 bg-white px-3 py-2">
-          <span className="size-2 rounded-full bg-emerald-600" />
-          Foundation connected
-        </Badge>
+        <a
+          href="/dashboard"
+          className="rounded-md border bg-background px-4 py-2 text-sm font-medium"
+        >
+          Refresh dashboard
+        </a>
       </div>
-      <div className="rounded-2xl bg-primary px-7 py-7 text-primary-foreground">
-        <div className="flex items-start gap-4">
-          <Building2 className="mt-1 size-8 shrink-0 text-amber-200" />
-          <div>
-            <p className="text-xs font-medium tracking-widest text-white/60">
-              STAFF WORKSPACE
-            </p>
-            <h2 className="mt-2 text-xl font-semibold">{hotel.hotel_name}</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-white/75">
-              Rooms, guests, reservations, check-in, room bills, checkout and
-              housekeeping are ready.
-            </p>
-          </div>
-        </div>
-      </div>
+      <p className="text-xs text-muted-foreground">
+        Updated{" "}
+        {new Intl.DateTimeFormat("en-GB", {
+          timeZone: "Asia/Jakarta",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }).format(new Date(data.as_of))}{" "}
+        WIB. Refresh to load the latest activity.
+      </p>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[
-          { name: "Occupied rooms", icon: BedDouble },
-          { name: "Today's arrivals", icon: LogIn },
-          { name: "Today's departures", icon: LogOut },
-          { name: "Today's revenue", icon: Wallet },
-        ].map(({ name, icon: Icon }) => (
-          <Card key={name}>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                {name}
-                <Icon className="size-4" />
-              </div>
-              <p
-                className="my-3 text-3xl text-muted-foreground"
-                aria-label="Not available"
+        {metrics.map((item) => (
+          <Card key={item.title}>
+            <CardHeader>
+              <CardDescription>{item.title}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold tabular-nums">
+                {item.value}
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {item.detail}
+              </p>
+              <Link
+                className="mt-4 inline-block text-sm font-medium text-primary underline underline-offset-4"
+                href={item.href}
               >
-                —
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Available when operations are enabled
-              </p>
+                View details
+              </Link>
             </CardContent>
           </Card>
         ))}
       </div>
-      <div className="grid items-start gap-6 xl:grid-cols-3">
-        <Card className="xl:col-span-2">
-          <CardHeader>
-            <CardTitle>Hotel overview</CardTitle>
-            <CardDescription>Current property configuration</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <dl className="grid gap-6 sm:grid-cols-2">
-              {[
-                {
-                  label: "Check-in time",
-                  value: hotel.check_in_time.slice(0, 5) + " WIB",
-                  icon: Clock3,
-                },
-                {
-                  label: "Check-out time",
-                  value: hotel.check_out_time.slice(0, 5) + " WIB",
-                  icon: CalendarDays,
-                },
-                {
-                  label: "Currency",
-                  value: hotel.default_currency,
-                  icon: Wallet,
-                },
-                {
-                  label: "Reservation prefix",
-                  value: hotel.reservation_prefix,
-                  icon: Building2,
-                },
-              ].map(({ label, value, icon: Icon }) => (
-                <div
-                  key={label}
-                  className="flex gap-3 rounded-xl bg-muted/50 p-4"
-                >
-                  <Icon className="mt-1 size-5 text-primary" />
-                  <div>
-                    <dt className="text-sm text-muted-foreground">{label}</dt>
-                    <dd className="mt-1 font-semibold">{value}</dd>
-                  </div>
-                </div>
-              ))}
-            </dl>
-            <div className="mt-6 flex flex-wrap gap-5 border-t pt-5 text-sm text-muted-foreground">
-              <span>Tax: {hotel.tax_percentage}%</span>
-              <span>Service charge: {hotel.service_charge_percentage}%</span>
-            </div>
-          </CardContent>
-        </Card>
+      {data.payments && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ShieldCheck className="size-5 text-primary" />
-              Your staff profile
-            </CardTitle>
+            <CardTitle>Today&apos;s recorded payments</CardTitle>
             <CardDescription>
-              Managed by your hotel administrator
+              Receipts minus reversals recorded today in Asia/Jakarta. These are
+              payment records, not earned revenue or verified bank settlements.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <p className="font-medium">{profile.full_name}</p>
-              <p className="mt-1 break-all text-sm text-muted-foreground">
-                {profile.email}
+          <CardContent>
+            {data.payments.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No payments or reversals recorded today.
               </p>
-            </div>
-            <Badge variant="secondary">
-              {profile.role.replaceAll("_", " ")}
-            </Badge>
-            <p className="border-t pt-4 text-sm leading-6 text-muted-foreground">
-              Access is checked on the server and protected by database
-              permissions.
-            </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="p-3">Currency</th>
+                      <th className="p-3">Received</th>
+                      <th className="p-3">Reversed</th>
+                      <th className="p-3">Net received</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.payments.map((row) => (
+                      <tr key={row.currency} className="border-b">
+                        <th className="p-3">{row.currency}</th>
+                        <td className="p-3 tabular-nums">{row.received}</td>
+                        <td className="p-3 tabular-nums">{row.reversed}</td>
+                        <td className="p-3 font-semibold tabular-nums">
+                          {row.net}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <Link
+              href="/payments"
+              className="mt-4 inline-block text-sm text-primary underline underline-offset-4"
+            >
+              View payment history
+            </Link>
           </CardContent>
         </Card>
-      </div>
+      )}
       <Card>
         <CardHeader>
-          <CardTitle>What comes next</CardTitle>
-          <CardDescription>
-            Modules are introduced incrementally, with operational correctness
-            first.
-          </CardDescription>
+          <CardTitle>Hotel overview</CardTitle>
+          <CardDescription>Current property configuration</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-          {[
-            {
-              title: "Room moves",
-              detail: "Move an in-house guest to another ready room.",
-            },
-            {
-              title: "Additional charges",
-              detail:
-                "Settle guest accounts and prepare rooms after departure.",
-            },
-            {
-              title: "Hotel operations",
-              detail: "Maintenance tasks and operational reporting.",
-            },
-          ].map((item) => (
-            <div key={item.title} className="rounded-xl border p-4">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="text-sm font-semibold">{item.title}</h3>
-                <ArrowUpRight className="size-4 text-muted-foreground" />
-              </div>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                {item.detail}
-              </p>
-              <p className="mt-4 text-xs font-medium text-muted-foreground">
-                Upcoming phase
-              </p>
-            </div>
-          ))}
+        <CardContent className="flex flex-wrap gap-6 text-sm">
+          <p>
+            Check-in: <strong>{hotel.check_in_time.slice(0, 5)} WIB</strong>
+          </p>
+          <p>
+            Check-out: <strong>{hotel.check_out_time.slice(0, 5)} WIB</strong>
+          </p>
+          <p>
+            Currency: <strong>{hotel.default_currency}</strong>
+          </p>
+          <p>Tax: {hotel.tax_percentage}%</p>
+          <p>Service: {hotel.service_charge_percentage}%</p>
         </CardContent>
       </Card>
+      <p className="text-xs text-muted-foreground">
+        Occupancy uses all active rooms, including rooms under maintenance.
+        Arrivals exclude cancelled and no-show bookings. Departures include
+        checked-in and checked-out bookings scheduled for today. Only data
+        allowed for your role is shown.
+      </p>
     </div>
   );
 }

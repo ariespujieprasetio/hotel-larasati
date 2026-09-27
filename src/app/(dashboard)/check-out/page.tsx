@@ -28,8 +28,8 @@ export default async function CheckoutPage({
     <div className="space-y-6">
       <h1 className="text-3xl font-semibold">Check-out</h1>
       <p className="text-muted-foreground">
-        Review the guest bill and settle all room charges before departure.
-        Early departure retains the agreed booking total.
+        Review the guest bill and settle room and extra charges before
+        departure. Early departure retains the agreed booking total.
       </p>
       <div className="divide-y rounded-xl border bg-card">
         {!stays.length && (

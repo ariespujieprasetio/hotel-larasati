@@ -34,12 +34,12 @@ Without environment variables, the login page displays setup instructions and di
 - Browser/server Supabase utilities and proxy session refresh.
 - Server-side user verification plus active-profile checks; roles come from PostgreSQL, never user-editable auth metadata.
 - Responsive sidebar, accessible mobile navigation, profile summary, and live hotel settings.
-- Dashboard operational metrics explicitly show unavailable values until the relevant modules exist.
+- Role-aware dashboard shows live room occupancy, arrivals, departures, housekeeping workload and recorded payments.
 - OWNER, MANAGER, FRONT_OFFICE, HOUSEKEEPING, and FINANCE roles.
 - Typed initial database schema, singleton hotel settings, timestamps, constraints, signup/email-sync triggers, and RLS.
 - Form validation using Zod and React Hook Form, loading/error states, reusable shadcn components.
 
-Room, guest, reservation, check-in, room billing, payment recording and checkout are implemented. Housekeeping assignments, notes and work history are also implemented. Extra charges, refunds, maintenance-task and report modules remain upcoming. Sidebar entries marked Soon are not links. Recharts and date-fns are installed for later phases. A separate server-only admin client is used only to create staff Auth accounts; application data writes still use the authenticated staff session.
+Room, guest, reservation, check-in, room billing, payment recording and checkout are implemented. Housekeeping assignments, notes and work history are also implemented. Extra charges are implemented; refunds, maintenance-task and report modules remain upcoming. Sidebar entries marked Soon are not links. Recharts and date-fns are installed for later phases. A separate server-only admin client is used only to create staff Auth accounts; application data writes still use the authenticated staff session.
 
 ## Files and responsibilities
 
@@ -138,7 +138,7 @@ Rules:
 
 Creating a reservation does not check a guest in or record a payment. Room folios open at check-in after applying the billing migration.
 
-`npm test` now runs a local PGlite PostgreSQL harness with a minimal Supabase Auth fixture. It applies all migrations and runs all eight SQL suites, including exclusion constraints, quote tampering, rate snapshots, sold-out inventory, same-day turnover, role denial and stale edits. This is a development test dependency only; the application still uses Supabase. The harness does not simulate Supabase's hosted Auth service or multi-session concurrency/load. The exclusion constraint provides the database overlap guarantee.
+`npm test` now runs a local PGlite PostgreSQL harness with a minimal Supabase Auth fixture. It applies all migrations and runs all nine SQL suites, including exclusion constraints, quote tampering, rate snapshots, sold-out inventory, same-day turnover, role denial and stale edits. This is a development test dependency only; the application still uses Supabase. The harness does not simulate Supabase's hosted Auth service or multi-session concurrency/load. The exclusion constraint provides the database overlap guarantee.
 
 After migration, run the entire `supabase/tests/reservations.sql` on a disposable development Supabase database as postgres. Fixtures roll back. For a manual concurrency check, use two staff sessions to select the same room/dates and submit both; exactly one should succeed. Also test auto-assignment when the room type is sold out, cancellation followed by rebooking, and the guest's booking history.
 
@@ -172,7 +172,7 @@ Open **Check-out** or **Folios / Billing**, review the room bill, record money a
 - Rooms then follow DIRTY -> CLEANING -> CLEAN -> INSPECTED -> AVAILABLE. The room cannot be checked in again while DIRTY.
 - Closed bills remain accessible using the Closed/All filter. Lists paginate 20 records; a bill displays its latest 200 ledger entries, while Payments provides the full paginated history.
 
-Validation: `npm test` includes the eight PostgreSQL rollback suites, payment input tests, and a separate upgrade test for an already checked-in guest. Run the whole `supabase/tests/billing_checkout.sql` on a disposable development database as postgres for hosted database checks. Also run typecheck, lint, format:check and build.
+Validation: `npm test` includes the nine PostgreSQL rollback suites, payment input tests, and a separate upgrade test for an already checked-in guest. Run the whole `supabase/tests/billing_checkout.sql` on a disposable development database as postgres for hosted database checks. Also run typecheck, lint, format:check and build.
 
 Manual acceptance: try checkout with a balance; record a partial payment; reverse it as OWNER/MANAGER; settle the remaining amount; complete checkout; verify the guest disappears from In-house, reservation is CHECKED_OUT, room is DIRTY, and closed bill cannot receive new payments. Verify FINANCE cannot check out or reverse entries. For concurrency acceptance on hosted Supabase, submit competing payments from two sessions and confirm the total never exceeds the bill, then test checkout against a simultaneous reversal. Local PGlite tests exercise constraints and stale-version handling, not multi-session load.
 
@@ -219,6 +219,22 @@ Profile updates use a version check. A private database counter serializes chang
 
 Inactive profiles lose operational access through the existing server/profile and database role checks, even if the Auth token has not expired. Open housekeeping assignments are retained; reassign them as management. Staff-name snapshots in old task history are preserved. The UI prevents changing your own role/status; ask another owner to do so.
 
-Validation: `npm test` covers the eight SQL suites, last-owner protection, manager/cleaner/inactive/anonymous denial, stale updates, housekeeping roster activation, password input limits, and upgrading an existing owner. Run the whole `supabase/tests/staff.sql` only on a disposable development database: it temporarily isolates owner fixtures and rolls everything back. The local harness does not call hosted Supabase Auth or simulate multi-session concurrency.
+Validation: `npm test` covers the nine SQL suites, last-owner protection, manager/cleaner/inactive/anonymous denial, stale updates, housekeeping roster activation, password input limits, and upgrading an existing owner. Run the whole `supabase/tests/staff.sql` only on a disposable development database: it temporarily isolates owner fixtures and rolls everything back. The local harness does not call hosted Supabase Auth or simulate multi-session concurrency.
 
 Manual acceptance with configured credentials: create a HOUSEKEEPING account; confirm it appears in assignments; log in as that staff member; deny Users access; deactivate the account and verify operational access stops. Test a duplicate email, two edit tabs and last-owner demotion. If no secret key is configured, verify the setup message and that editing an existing staff account still works.
+
+## Operational dashboard
+
+Apply only `supabase/migrations/202609270007_dashboard.sql`. Dashboard aggregates use the authenticated session and existing RLS, with no admin key. Refresh the dashboard for new activity. All daily boundaries use Asia/Jakarta, inclusive midnight to exclusive next midnight. Occupancy is occupied active rooms / all active rooms, including maintenance rooms. Ready rooms are AVAILABLE or INSPECTED. Arrivals include pending/confirmed/checked-in/checked-out bookings scheduled today; departures include checked-in/checked-out bookings scheduled today. Overdue departures remain checked in beyond their scheduled date.
+
+Payments are daily receipts minus daily reversal entries, grouped by folio currency and summed in PostgreSQL numeric arithmetic. This is recorded cash flow, not earned revenue; a reversal today for an earlier receipt may produce a negative net. No transactions is shown as an explicit empty state. HOUSEKEEPING sees inventory and cleaning summaries, FINANCE sees payments, and OWNER/MANAGER/FRONT_OFFICE see both plus reservation counts. Failures show an error, never fabricated zeros. No production data is inserted.
+
+## Folio extra charges
+
+Apply only `supabase/migrations/202609270008_folio_extras.sql`. Existing room prices, payments and closed bills are unchanged; no sample charges are inserted. Open Folios / Billing and select an open bill to add a service description, integer quantity (1-1000) and positive final unit price in the folio currency. Prices include any applicable tax/service; no automatic extra percentages are applied. Room charge snapshots remain separate from extras and the overall bill.
+
+OWNER/MANAGER/FRONT_OFFICE/FINANCE may add charges and read their history. Only OWNER/MANAGER may cancel a charge, with a reason. Direct client inserts/updates/deletes are denied. Cancellation preserves the original details, creator and timestamp plus the cancelling actor, time and reason. The history paginates 20 entries, including cancellations.
+
+Each addition has a stable request UUID for retries in the mounted form. Same key/details returns the existing entry; changed details are rejected. After a reload or interrupted response, check history before entering the same service again. All writes lock the folio alongside payments/checkout and check its reviewed version. Totals use PostgreSQL numeric arithmetic, and changes increment the folio version to invalidate stale checkout forms. Closed bills reject new charges and cancellations.
+
+Cancellation cannot reduce the total below net payments already recorded. Review an erroneous payment with management before cancelling; payment reversal corrects records and does not send a refund. Checkout still requires zero balance, including all active extras. Tests cover cents, overflow, duplicate requests, stale versions, cancellation history, role denial, paid/closed protections and checkout after adding services. Run `npm test`; hosted Auth and concurrent browser sessions require manual acceptance.

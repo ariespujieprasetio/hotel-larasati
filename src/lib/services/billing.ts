@@ -68,3 +68,20 @@ export async function listPayments(page: number) {
   if (folios.error) throw new Error("Payment references could not be loaded.");
   return { payments, folios: folios.data ?? [], count: count ?? 0 };
 }
+
+export async function getFolioExtras(id: string, page: number) {
+  if (!z.uuid().safeParse(id).success) notFound();
+  const { supabase } = await requireRole(billingRoles);
+  const { data, error, count } = await supabase
+    .from("folio_extras")
+    .select("*", { count: "exact" })
+    .eq("folio_id", id)
+    .order("created_at", { ascending: false })
+    .order("id")
+    .range((page - 1) * 20, page * 20 - 1);
+  if (error)
+    throw new Error(
+      "Extra charges could not be loaded. Apply the folio extras migration and retry.",
+    );
+  return { extras: data ?? [], count: count ?? 0 };
+}

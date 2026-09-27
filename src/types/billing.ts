@@ -28,3 +28,17 @@ export type Payment = {
   created_by: string;
   created_at: string;
 };
+
+export type FolioExtra = {
+  id: string;
+  folio_id: string;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  amount: number;
+  created_by: string;
+  created_at: string;
+  voided_at: string | null;
+  voided_by: string | null;
+  void_reason: string;
+};

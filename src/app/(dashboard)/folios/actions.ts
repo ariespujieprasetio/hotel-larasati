@@ -5,6 +5,8 @@ import { requireRole } from "@/lib/services/auth";
 import { billingRoles } from "@/lib/billing";
 import { reservationRoles } from "@/lib/reservations";
 import {
+  extraSchema,
+  voidExtraSchema,
   paymentSchema,
   reversalSchema,
   checkoutSchema,
@@ -12,6 +14,12 @@ import {
 type Result = { ok: true } | { error: string };
 function message(error: { message: string; code?: string }) {
   const messages: Record<string, string> = {
+    INVALID_EXTRA: "Enter a valid description, quantity and final unit price.",
+    EXTRA_REQUEST_CONFLICT:
+      "This request was used for different charge details. Review the history before retrying.",
+    EXTRA_ALREADY_PAID:
+      "This cancellation would make payments exceed the bill. Review the recorded payments first; refunds are not supported here.",
+    AMOUNT_TOO_LARGE: "This charge would exceed the maximum bill amount.",
     INVALID_PAYMENT:
       "Enter a valid payment amount, method and transaction reference.",
     PAYMENT_EXCEEDS_BALANCE:
@@ -19,12 +27,12 @@ function message(error: { message: string; code?: string }) {
     PAYMENT_REQUEST_CONFLICT:
       "This payment request was already used for different details. Reload before retrying.",
     FOLIO_CLOSED: "This bill is closed and cannot be changed.",
-    STALE_FOLIO: "The bill changed. Reload and review it before checking out.",
+    STALE_FOLIO: "The bill changed. Reload and review it before continuing.",
     BALANCE_DUE: "Record the remaining payment before check-out.",
     NOT_CHECKED_IN: "This reservation is not currently checked in.",
     STAY_ROOM_MISMATCH:
       "The room and stay records do not match. Check-out was not completed.",
-    REASON_REQUIRED: "Enter a reason for reversing this payment.",
+    REASON_REQUIRED: "Enter a reason with at least three characters.",
   };
   return (
     messages[error.message] ??
@@ -102,5 +110,53 @@ export async function checkOut(input: unknown): Promise<Result> {
   } catch (e) {
     unstable_rethrow(e);
     return { error: "Unable to check out. Reload and try again." };
+  }
+}
+
+export async function addExtra(input: unknown): Promise<Result> {
+  try {
+    const { supabase } = await requireRole(billingRoles);
+    const parsed = extraSchema.safeParse(input);
+    if (!parsed.success) return { error: parsed.error.issues[0].message };
+    const v = parsed.data;
+    const { error } = await supabase.rpc("add_folio_extra", {
+      p_folio: v.folioId,
+      p_request: v.requestId,
+      p_version: v.version,
+      p_description: v.description,
+      p_quantity: v.quantity,
+      p_unit_price: v.unitPrice,
+    });
+    if (error) return { error: message(error) };
+    refreshBilling();
+    return { ok: true };
+  } catch (e) {
+    unstable_rethrow(e);
+    return {
+      error:
+        "Unable to confirm the charge. Retry the same details, or check charge history before creating another.",
+    };
+  }
+}
+export async function voidExtra(input: unknown): Promise<Result> {
+  try {
+    const { supabase } = await requireRole(["OWNER", "MANAGER"]);
+    const parsed = voidExtraSchema.safeParse(input);
+    if (!parsed.success)
+      return { error: "Enter a cancellation reason (3-500 characters)." };
+    const v = parsed.data;
+    const { error } = await supabase.rpc("void_folio_extra", {
+      p_id: v.extraId,
+      p_version: v.version,
+      p_reason: v.reason,
+    });
+    if (error) return { error: message(error) };
+    refreshBilling();
+    return { ok: true };
+  } catch (e) {
+    unstable_rethrow(e);
+    return {
+      error: "Unable to cancel this charge. Reload and review its status.",
+    };
   }
 }

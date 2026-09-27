@@ -38,9 +38,9 @@ export function CheckoutForm({
     >
       <h2 className="text-xl font-semibold">Check-out</h2>
       <p className="text-sm text-muted-foreground">
-        Check-out closes this bill and marks the room DIRTY. The agreed
-        reservation total is retained for early or late departure; no extra
-        charges or refunds are calculated.
+        Check-out closes this bill and marks the room DIRTY. Add all services
+        before settling the balance. Room prices are retained for early or late
+        departure; no automatic late fees or refunds are calculated.
       </p>
       {balance > 0 ? (
         <p className="text-sm text-amber-800">

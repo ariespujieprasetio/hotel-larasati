@@ -1,9 +1,10 @@
+import type { DashboardSummary } from "@/types/dashboard";
 import type {
   Reservation,
   ReservationPreview,
   ReservationActivity,
 } from "@/types/reservations";
-import type { Folio, Payment } from "@/types/billing";
+import type { Folio, Payment, FolioExtra } from "@/types/billing";
 import type {
   HousekeepingTask,
   HousekeepingActivity,
@@ -60,6 +61,7 @@ type Table<Row, Insert> = {
 export type Database = {
   public: {
     Tables: {
+      folio_extras: Table<FolioExtra, never>;
       staff_activity: Table<StaffActivity, never>;
       housekeeping_tasks: Table<HousekeepingTask, never>;
       housekeeping_activity: Table<HousekeepingActivity, never>;
@@ -95,6 +97,26 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      add_folio_extra: {
+        Args: {
+          p_folio: string;
+          p_request: string;
+          p_version: number;
+          p_description: string;
+          p_quantity: number;
+          p_unit_price: number;
+        };
+        Returns: string;
+      };
+      void_folio_extra: {
+        Args: { p_id: string; p_version: number; p_reason: string };
+        Returns: string;
+      };
+
+      dashboard_summary: {
+        Args: Record<string, never>;
+        Returns: DashboardSummary;
+      };
       update_staff_profile: {
         Args: {
           p_id: string;
