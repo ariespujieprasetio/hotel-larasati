@@ -1,3 +1,4 @@
+import type { PaymentReport } from "@/lib/payment-reports";
 import type { MaintenanceTask, MaintenanceActivity } from "@/types/maintenance";
 import type { FolioPrint } from "@/types/folio-print";
 import type { DashboardSummary } from "@/types/dashboard";
@@ -102,6 +103,10 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      payment_report: {
+        Args: { p_from: string; p_to: string };
+        Returns: PaymentReport;
+      };
       maintenance_staff: {
         Args: Record<string, never>;
         Returns: { id: string; full_name: string }[];

@@ -225,5 +225,35 @@ do $$ begin
 end; $$;
 reset role;
 
+
+-- Payment report follows entry dates, including reversals of earlier receipts.
+select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000099',true);
+set local role authenticated;
+do $$ declare d jsonb; day date:=(now() at time zone 'Asia/Jakarta')::date; expected numeric; actual numeric; begin
+ d:=public.payment_report(day,day);
+ select -coalesce(sum(amount),0) into expected from public.payments where kind='REVERSAL';
+ select coalesce(sum((value->>'net')::numeric),0) into actual from jsonb_array_elements(d->'totals');
+ if expected>=0 or actual<>expected then raise exception 'Report midnight/reversal total incorrect'; end if;
+ select coalesce(sum((value->>'net')::numeric),0) into actual from jsonb_array_elements(d->'methods');
+ if actual<>expected then raise exception 'Report method total incorrect'; end if;
+ d:=public.payment_report(day+1,day+1);
+ select coalesce(sum(amount),0) into expected from public.payments where kind='PAYMENT';
+ select coalesce(sum((value->>'net')::numeric),0) into actual from jsonb_array_elements(d->'totals');
+ if actual<>expected then raise exception 'Report next-day receipts incorrect'; end if;
+ if jsonb_array_length(public.payment_report(day-2,day-1)->'totals')<>0 then raise exception 'Empty report not empty'; end if;
+ begin perform public.payment_report(day,day-1);raise exception 'Reversed dates allowed';exception when raise_exception then if sqlerrm<>'INVALID_REPORT_DATES' then raise;end if;end;
+ begin perform public.payment_report(day,day+366);raise exception 'Long dates allowed';exception when raise_exception then if sqlerrm<>'INVALID_REPORT_DATES' then raise;end if;end;
+ perform set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000004',true);
+ -- This fixture was changed to FINANCE by the dashboard checks.
+ if public.payment_report(day,day) is null then raise exception 'Finance denied report';end if;
+ perform set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000003',true);
+ begin perform public.payment_report(day,day);raise exception 'Front office report allowed';exception when insufficient_privilege then null;end;
+ perform set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000001',true);
+ begin perform public.payment_report(day,day);raise exception 'Inactive report allowed';exception when insufficient_privilege then null;end;
+end;$$;
+reset role;set local role anon;
+do $$ begin begin perform public.payment_report(current_date,current_date);raise exception 'Anon report allowed';exception when insufficient_privilege then null;end;end;$$;
+reset role;
+
 rollback;
 select 'Billing and checkout checks passed; fixtures rolled back.' as result;

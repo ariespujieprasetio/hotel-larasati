@@ -264,3 +264,11 @@ OWNER/MANAGER assign active owners, managers or housekeeping staff, start work, 
 Reports track work only and never change room availability. Management must separately review Rooms and block a vacant room as MAINTENANCE/OUT_OF_ORDER; existing reservations and occupancy guards still apply. After repair, review cleaning/inspection before releasing the room. No technician role, external contractor directory, automatic room blocking or repair-expense accounting is introduced.
 
 Manual acceptance: report an issue, assign housekeeping, start and add a note as that cleaner, approve completion as manager, verify history and completed filter. Test stale updates in two tabs and denied finance/other-assignee writes. Local SQL tests cover request retries, permission boundaries, versions, completion and unchanged inventory.
+
+## Payment reports
+
+Apply supabase/migrations/202609280003_payment_reports.sql and open Reports -> Payment report. OWNER/MANAGER/FINANCE choose an inclusive date period up to 366 days; the default is month-to-date in Asia/Jakarta. SQL aggregates all matching ledger entries, independently of list pagination. No application admin key is used. Front office, housekeeping, inactive and anonymous users are denied the report RPC and export.
+
+Totals and method breakdowns keep currencies separate. Received is PAYMENT entries, reversed is REVERSAL entries, and net is received minus reversed. Entry date controls the period, including reversals of older payments, so net can be negative. These are recorded receipts, not earned revenue or verified settlements. Database numeric totals are returned as strings to preserve precision. Empty periods show no activity.
+
+Export CSV downloads every currency/method group for the selected period (not transaction-level records), with period and generation timestamp, UTF-8 BOM and CRLF. The download is authenticated and private/no-store. Export reloads the report, so newly recorded entries may change it compared with an earlier on-screen view. Tests verify WIB boundaries, reversal timing, totals, denied roles, dates and CSV precision. Manually select a period containing existing payments and compare with Payments; no new reservation is needed.

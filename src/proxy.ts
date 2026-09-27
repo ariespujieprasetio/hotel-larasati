@@ -13,6 +13,7 @@ export async function proxy(request: NextRequest) {
       request.nextUrl.pathname.startsWith("/housekeeping") ||
       request.nextUrl.pathname.startsWith("/users") ||
       request.nextUrl.pathname.startsWith("/settings") ||
+      request.nextUrl.pathname.startsWith("/reports") ||
       request.nextUrl.pathname.startsWith("/maintenance") ||
       request.nextUrl.pathname.startsWith("/rooms") ||
       request.nextUrl.pathname.startsWith("/guests") ||
@@ -54,6 +55,7 @@ export async function proxy(request: NextRequest) {
       request.nextUrl.pathname.startsWith("/housekeeping") ||
       request.nextUrl.pathname.startsWith("/users") ||
       request.nextUrl.pathname.startsWith("/settings") ||
+      request.nextUrl.pathname.startsWith("/reports") ||
       request.nextUrl.pathname.startsWith("/maintenance") ||
       request.nextUrl.pathname.startsWith("/rooms") ||
       request.nextUrl.pathname.startsWith("/guests") ||
@@ -76,6 +78,7 @@ export const config = {
     "/dashboard/:path*",
     "/users/:path*",
     "/settings/:path*",
+    "/reports/:path*",
     "/maintenance/:path*",
     "/rooms/:path*",
     "/housekeeping/:path*",

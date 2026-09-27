@@ -34,6 +34,7 @@ const all: Role[] = [
 ];
 const activeRoutes: Record<string, string> = {
   Settings: "/settings",
+  "Payment report": "/reports/payments",
   Maintenance: "/maintenance",
   Users: "/users",
   Rooms: "/rooms",
@@ -75,7 +76,7 @@ const navigation = [
     title: "Reports",
     icon: ChartNoAxesCombined,
     roles: ["OWNER", "MANAGER", "FINANCE"],
-    items: ["Occupancy", "Revenue", "Financial reports"],
+    items: ["Occupancy", "Revenue", "Payment report", "Financial reports"],
   },
   {
     title: "Management",
