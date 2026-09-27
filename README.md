@@ -39,7 +39,7 @@ Without environment variables, the login page displays setup instructions and di
 - Typed initial database schema, singleton hotel settings, timestamps, constraints, signup/email-sync triggers, and RLS.
 - Form validation using Zod and React Hook Form, loading/error states, reusable shadcn components.
 
-Room, guest and reservation management are implemented. Check-in/out, billing, housekeeping-task and report modules remain upcoming. Sidebar entries marked Soon are not links. Recharts and date-fns are installed for later phases. No service-role client exists.
+Room, guest, reservation and check-in management are implemented. Checkout, billing, housekeeping-task and report modules remain upcoming. Sidebar entries marked Soon are not links. Recharts and date-fns are installed for later phases. No service-role client exists.
 
 ## Files and responsibilities
 
@@ -98,7 +98,7 @@ Deployment needs environment variables, applied migrations, provisioned staff ac
 
 Apply only `supabase/migrations/202609250002_room_management.sql` as a new SQL Editor query after the foundation migration. Do not rerun the first migration. Manual SQL Editor migrations require CLI migration-history reconciliation before a later `supabase db push`.
 
-Open `/rooms`, add a room type, then add a room. OWNER/MANAGER manage inventory; FRONT_OFFICE reads it; HOUSEKEEPING performs DIRTY → CLEANING → CLEAN → INSPECTED → AVAILABLE. FINANCE has no room-operations access. Reserved/occupied states will be controlled by the future reservation module.
+Open `/rooms`, add a room type, then add a room. OWNER/MANAGER manage inventory; FRONT_OFFICE reads it; HOUSEKEEPING performs DIRTY → CLEANING → CLEAN → INSPECTED → AVAILABLE. FINANCE has no room-operations access. Occupied status is controlled by the check-in workflow. Future bookings do not change physical room readiness.
 
 Includes room/type forms, board/table views, filters, pagination, soft deactivation, version-based stale-edit rejection, and database activity records. Room types cannot be deactivated while active rooms reference them. No demo inventory is inserted automatically.
 
@@ -127,7 +127,7 @@ Rules:
 - Pending and confirmed reservations both hold inventory. Each saved booking gets a real room allocation, even when the user selects automatic assignment.
 - Checkout is an exclusive boundary: a booking ending September 27 does not block another starting September 27. Maximum stay: 365 nights.
 - Active reservations cannot overlap the same room; a PostgreSQL exclusion constraint enforces this in addition to transactional allocation.
-- Inactive, maintenance, out-of-order, occupied and manually reserved rooms cannot be newly assigned. Dirty/cleaning rooms may be booked but must be cleaned before a future check-in workflow permits entry.
+- Inactive, maintenance, out-of-order, occupied and manually reserved rooms cannot be newly assigned. Dirty/cleaning rooms may be booked but must be cleaned before the check-in workflow permits entry.
 - Room board status continues to describe current readiness. Future bookings do not mark today's room as reserved.
 - OWNER/MANAGER/FRONT_OFFICE can manage reservations. Only OWNER/MANAGER can change discounts; front office may preserve an existing approved discount.
 - Prices are calculated in PostgreSQL: nightly rate × nights − discount; service charge on that net amount; tax on net plus service. Money is rounded to two decimal places. Final amounts and currency are rechecked against the reviewed quote on save.
@@ -136,8 +136,23 @@ Rules:
 - Reassign or cancel active bookings before deactivating their guest, changing/blocking their room, or reducing room-type capacity below booked party sizes.
 - Direct client writes to reservation tables are forbidden. RPCs recheck active staff roles; audit records are written atomically.
 
-Check-in/out, deposits, payments and folios are the next phase. Creating a reservation does not check a guest in or record revenue.
+Checkout, deposits, payments and folios are the next phase. Creating a reservation does not check a guest in or record revenue.
 
-`npm test` now runs a local PGlite PostgreSQL harness with a minimal Supabase Auth fixture. It applies all migrations and runs all four SQL suites, including exclusion constraints, quote tampering, rate snapshots, sold-out inventory, same-day turnover, role denial and stale edits. This is a development test dependency only; the application still uses Supabase. The harness does not simulate Supabase's hosted Auth service or multi-session concurrency/load. The exclusion constraint provides the database overlap guarantee.
+`npm test` now runs a local PGlite PostgreSQL harness with a minimal Supabase Auth fixture. It applies all migrations and runs all five SQL suites, including exclusion constraints, quote tampering, rate snapshots, sold-out inventory, same-day turnover, role denial and stale edits. This is a development test dependency only; the application still uses Supabase. The harness does not simulate Supabase's hosted Auth service or multi-session concurrency/load. The exclusion constraint provides the database overlap guarantee.
 
 After migration, run the entire `supabase/tests/reservations.sql` on a disposable development Supabase database as postgres. Fixtures roll back. For a manual concurrency check, use two staff sessions to select the same room/dates and submit both; exactly one should succeed. Also test auto-assignment when the room type is sold out, cancellation followed by rebooking, and the guest's booking history.
+
+## Check-in and in-house guests
+
+Apply only `supabase/migrations/202609270003_check_in.sql` after the reservation migration. No earlier migration needs to be rerun.
+
+Open **Check-in**, review a confirmed reservation, verify the guest and room assignment, tick the verification checkbox, and select **Check in guest**. Pending reservations must be confirmed first. Successful check-in opens **In-house guests** and changes the room to OCCUPIED.
+
+- OWNER, MANAGER and FRONT_OFFICE may check in and read stays. HOUSEKEEPING, FINANCE, inactive accounts and anonymous users cannot.
+- Check-in is allowed on or after the booked arrival date and strictly before the departure date, using Asia/Jakarta. Same-day early arrival is allowed when the room is ready; there is no check-in-hour restriction or automatic extra fee. Earlier calendar dates require editing the reservation first.
+- Only active AVAILABLE or INSPECTED rooms qualify. CLEAN rooms must complete inspection first. Guest and room type must remain active.
+- The RPC atomically inserts a stay, changes the reservation to CHECKED_IN, updates the room to OCCUPIED, and records existing reservation/room audits. It preserves the agreed booking prices and dates, including late arrivals.
+- A unique open-stay index prevents simultaneous physical occupants even after the scheduled departure date. Repeated requests and stale booking versions are rejected. There are no direct client stay writes or manual occupied-room releases.
+- In-house guests shows actual arrival time and scheduled departure, including overdue departures. Lists paginate 20 records at a time. Checkout, room moves, folios and payments are not implemented in this phase; check-in does not record revenue.
+
+Run `npm test` for the local PostgreSQL suite, or run the entire `supabase/tests/check_in.sql` in a disposable development database as postgres. Fixtures roll back. Tests cover pending/future/stale/duplicate check-ins, dirty-room rejection and rollback, successful arrival and audit, role restrictions, and a prior guest overstaying. The local harness does not simulate concurrent sessions; for hosted acceptance, submit the same check-in from two staff sessions and verify only one stay exists.

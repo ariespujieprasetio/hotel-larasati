@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CheckInForm } from "@/components/reservations/check-in-form";
 import { getReservationContext } from "@/lib/services/reservations";
 import { nightsBetween } from "@/lib/reservations";
 import { ReservationBadge } from "@/components/reservations/status-badge";
@@ -97,9 +98,22 @@ export default async function ReservationDetail({
         </section>
         <aside className="space-y-6 rounded-xl border bg-card p-6">
           <ReservationStatusForm key={r.version} reservation={r} />
+          {r.status === "CONFIRMED" && (
+            <CheckInForm
+              key={"arrival-" + r.version}
+              id={r.id}
+              version={r.version}
+              roomNumber={room.room_number}
+            />
+          )}
+          {r.status === "CHECKED_IN" && (
+            <Link href="/in-house" className="underline">
+              View in-house guests
+            </Link>
+          )}
           <p className="text-sm text-muted-foreground">
-            This booking reserves a room. Check-in, folio and payments will be
-            available in the next operational phase.
+            Confirm the booking before checking in. Folio, payments and checkout
+            will be available in the next phase.
           </p>
         </aside>
       </div>

@@ -42,6 +42,7 @@ test(
         "rooms.sql",
         "guests.sql",
         "reservations.sql",
+        "check_in.sql",
       ])
         await runSql("supabase/tests/" + name);
     } finally {

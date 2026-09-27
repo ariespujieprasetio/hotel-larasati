@@ -3,6 +3,7 @@ import type {
   ReservationPreview,
   ReservationActivity,
 } from "@/types/reservations";
+import type { Stay } from "@/types/stays";
 export type Json =
   | string
   | number
@@ -52,6 +53,7 @@ type Table<Row, Insert> = {
 export type Database = {
   public: {
     Tables: {
+      stays: Table<Stay, never>;
       reservations: Table<Reservation, never>;
       reservation_activity: Table<ReservationActivity, never>;
       guests: Table<
@@ -81,6 +83,10 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      check_in_reservation: {
+        Args: { p_id: string; p_version: number };
+        Returns: string;
+      };
       reservation_preview: {
         Args: { p_data: Json };
         Returns: ReservationPreview;

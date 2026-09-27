@@ -58,7 +58,7 @@ export default async function DashboardPage() {
             </p>
             <h2 className="mt-2 text-xl font-semibold">{hotel.hotel_name}</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-white/75">
-              Room, guest and reservation management are ready. Check-in and
+              Rooms, guests, reservations and check-in are ready. Checkout and
               financial workflows will follow in the next implementation phases.
             </p>
           </div>
@@ -176,12 +176,13 @@ export default async function DashboardPage() {
         <CardContent className="grid gap-4 md:grid-cols-3">
           {[
             {
-              title: "Room availability",
-              detail: "Date-based availability and reservation assignment.",
+              title: "Room moves",
+              detail: "Move an in-house guest to another ready room.",
             },
             {
-              title: "Check-in & check-out",
-              detail: "Guest arrivals, stays, and departures.",
+              title: "Check-out",
+              detail:
+                "Settle guest accounts and prepare rooms after departure.",
             },
             {
               title: "Hotel operations",

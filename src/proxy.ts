@@ -12,6 +12,8 @@ export async function proxy(request: NextRequest) {
       request.nextUrl.pathname.startsWith("/dashboard") ||
       request.nextUrl.pathname.startsWith("/rooms") ||
       request.nextUrl.pathname.startsWith("/guests") ||
+      request.nextUrl.pathname.startsWith("/check-in") ||
+      request.nextUrl.pathname.startsWith("/in-house") ||
       request.nextUrl.pathname.startsWith("/reservations")
     ) {
       const redirect = NextResponse.redirect(new URL("/login", request.url));
@@ -44,6 +46,8 @@ export async function proxy(request: NextRequest) {
     (request.nextUrl.pathname.startsWith("/dashboard") ||
       request.nextUrl.pathname.startsWith("/rooms") ||
       request.nextUrl.pathname.startsWith("/guests") ||
+      request.nextUrl.pathname.startsWith("/check-in") ||
+      request.nextUrl.pathname.startsWith("/in-house") ||
       request.nextUrl.pathname.startsWith("/reservations"))
   ) {
     const redirect = NextResponse.redirect(new URL("/login", request.url));
@@ -59,6 +63,8 @@ export const config = {
     "/rooms/:path*",
     "/guests/:path*",
     "/reservations/:path*",
+    "/check-in/:path*",
+    "/in-house/:path*",
     "/login",
   ],
 };
