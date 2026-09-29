@@ -10,9 +10,11 @@ export async function proxy(request: NextRequest) {
   if (!config) {
     if (
       request.nextUrl.pathname.startsWith("/dashboard") ||
+      request.nextUrl.pathname.startsWith("/audit-logs") ||
       request.nextUrl.pathname.startsWith("/housekeeping") ||
       request.nextUrl.pathname.startsWith("/users") ||
       request.nextUrl.pathname.startsWith("/settings") ||
+      request.nextUrl.pathname.startsWith("/expenses") ||
       request.nextUrl.pathname.startsWith("/reports") ||
       request.nextUrl.pathname.startsWith("/maintenance") ||
       request.nextUrl.pathname.startsWith("/rooms") ||
@@ -52,9 +54,11 @@ export async function proxy(request: NextRequest) {
   if (
     (error || !data.user) &&
     (request.nextUrl.pathname.startsWith("/dashboard") ||
+      request.nextUrl.pathname.startsWith("/audit-logs") ||
       request.nextUrl.pathname.startsWith("/housekeeping") ||
       request.nextUrl.pathname.startsWith("/users") ||
       request.nextUrl.pathname.startsWith("/settings") ||
+      request.nextUrl.pathname.startsWith("/expenses") ||
       request.nextUrl.pathname.startsWith("/reports") ||
       request.nextUrl.pathname.startsWith("/maintenance") ||
       request.nextUrl.pathname.startsWith("/rooms") ||
@@ -76,8 +80,10 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     "/dashboard/:path*",
+    "/audit-logs/:path*",
     "/users/:path*",
     "/settings/:path*",
+    "/expenses/:path*",
     "/reports/:path*",
     "/maintenance/:path*",
     "/rooms/:path*",

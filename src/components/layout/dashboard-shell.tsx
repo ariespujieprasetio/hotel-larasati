@@ -33,7 +33,12 @@ const all: Role[] = [
   "FINANCE",
 ];
 const activeRoutes: Record<string, string> = {
+  "Audit logs": "/audit-logs",
   Settings: "/settings",
+  Expenses: "/expenses",
+  Occupancy: "/reports/occupancy",
+  Revenue: "/reports/revenue",
+  "Financial reports": "/reports/financial",
   "Payment report": "/reports/payments",
   Maintenance: "/maintenance",
   Users: "/users",

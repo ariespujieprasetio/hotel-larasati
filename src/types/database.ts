@@ -1,3 +1,6 @@
+import type { Expense, ExpenseSummary } from "@/lib/expenses";
+import type { OperationalReport } from "@/lib/operational-reports";
+import type { AuditResult } from "@/lib/audit";
 import type { PaymentReport } from "@/lib/payment-reports";
 import type { MaintenanceTask, MaintenanceActivity } from "@/types/maintenance";
 import type { FolioPrint } from "@/types/folio-print";
@@ -65,6 +68,7 @@ type Table<Row, Insert> = {
 export type Database = {
   public: {
     Tables: {
+      expenses: Table<Expense, never>;
       maintenance_tasks: Table<MaintenanceTask, never>;
       maintenance_activity: Table<MaintenanceActivity, never>;
       folio_extras: Table<FolioExtra, never>;
@@ -103,6 +107,43 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      audit_log: {
+        Args: {
+          p_from: string;
+          p_to: string;
+          p_module: string;
+          p_actor: string | null;
+          p_offset: number;
+          p_limit: number;
+        };
+        Returns: AuditResult;
+      };
+      record_expense: {
+        Args: {
+          p_id: string;
+          p_date: string;
+          p_category: string;
+          p_amount: number;
+          p_currency: string;
+          p_method: string;
+          p_description: string;
+          p_reference: string;
+        };
+        Returns: string;
+      };
+      void_expense: {
+        Args: { p_id: string; p_reason: string };
+        Returns: string;
+      };
+      expense_summary: {
+        Args: { p_from: string; p_to: string };
+        Returns: ExpenseSummary;
+      };
+
+      operational_report: {
+        Args: { p_kind: string; p_from: string; p_to: string };
+        Returns: OperationalReport;
+      };
       payment_report: {
         Args: { p_from: string; p_to: string };
         Returns: PaymentReport;

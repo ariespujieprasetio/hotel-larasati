@@ -39,7 +39,7 @@ Without environment variables, the login page displays setup instructions and di
 - Typed initial database schema, singleton hotel settings, timestamps, constraints, signup/email-sync triggers, and RLS.
 - Form validation using Zod and React Hook Form, loading/error states, reusable shadcn components.
 
-Room, guest, reservation, check-in, room billing, payment recording and checkout are implemented. Housekeeping assignments, notes and work history are also implemented. Extra charges are implemented; refunds, maintenance-task and report modules remain upcoming. Sidebar entries marked Soon are not links. Recharts and date-fns are installed for later phases. A separate server-only admin client is used only to create staff Auth accounts; application data writes still use the authenticated staff session.
+Room, guest, reservation, check-in, room billing, payment recording, checkout, housekeeping, maintenance, expenses, reports and audit logs are implemented. Sidebar entries are linked to their completed modules. Recharts and date-fns support report presentation. A separate server-only admin client is used only to create staff Auth accounts; application data writes still use the authenticated staff session.
 
 ## Files and responsibilities
 
@@ -272,3 +272,35 @@ Apply supabase/migrations/202609280003_payment_reports.sql and open Reports -> P
 Totals and method breakdowns keep currencies separate. Received is PAYMENT entries, reversed is REVERSAL entries, and net is received minus reversed. Entry date controls the period, including reversals of older payments, so net can be negative. These are recorded receipts, not earned revenue or verified settlements. Database numeric totals are returned as strings to preserve precision. Empty periods show no activity.
 
 Export CSV downloads every currency/method group for the selected period (not transaction-level records), with period and generation timestamp, UTF-8 BOM and CRLF. The download is authenticated and private/no-store. Export reloads the report, so newly recorded entries may change it compared with an earlier on-screen view. Tests verify WIB boundaries, reversal timing, totals, denied roles, dates and CSV precision. Manually select a period containing existing payments and compare with Payments; no new reservation is needed.
+
+## Occupancy, revenue and financial reports
+
+Apply supabase/migrations/202609280004_operational_reports.sql. All four Reports menu entries now open working reports with date filters and CSV downloads for OWNER/MANAGER/FINANCE. Operational reports accept up to 366 inclusive days ending today or earlier in Asia/Jakarta. The aggregate-only security-definer RPC explicitly checks roles and does not expose guests, stays or reservations to finance.
+
+Occupancy shows distinct occupied rooms immediately before midnight for past days, or at report generation today. Active inventory is reconstructed from room_activity snapshots, ordered by timestamp/version; all active rooms including maintenance are in the denominator. Actual check-ins/check-outs use their recorded timestamps. Same-day visits may have no occupied room at the snapshot. Zero capacity gives no percentage. Historical accuracy depends on retained room/stay activity; the report does not substitute current capacity for missing history. Room transfers are not implemented yet.
+
+Revenue reports show closed folio totals by closing date/currency, with room subtotal, discount, service, tax and active extra charges. TOTAL rows summarize a currency and must not be added again to detail rows. This closing-date billing measure is not nightly revenue recognition. Open bills are excluded; late/early checkout does not reprice saved amounts.
+
+Financial reports combine period payments/reversals, period closed bill totals and CURRENT open-bill counts/outstanding balances. Current receivables are explicitly labelled and are not a historical period-end balance. No expenses/profit figure is fabricated because expenses are not implemented. Currencies never mix. Downloads contain the entire displayed aggregate result and generation time; downloading again may reflect newer entries.
+
+Tests cover historical occupancy, zero closed bills, current outstanding balances, finance aggregate-only access, invalid/future dates and denied roles. Validate your existing period totals and CSV files in the browser after applying the migration.
+
+## Expenses and recorded cash flow
+
+Apply supabase/migrations/202609290001_expenses.sql. Open Finance -> Expenses as OWNER/MANAGER/FINANCE. Record an actual payment date, category, amount, currency, method, reference and description. Future dates and sub-cent amounts are rejected. Non-cash methods require a reference. The app records money already paid and does not transfer funds. A stable request ID prevents duplicate retries with the same details while the form stays mounted; inspect history after reloading before resubmitting.
+
+Expense records cannot be edited or deleted by clients. OWNER/MANAGER can cancel an incorrect record with a reason; original fields, creation actor/time and cancellation actor/time/reason remain visible using Cancelled/All. Cancellation is a correction, not a supplier refund: it removes that amount from the original payment-date period, including historical reports. To fix details, cancel and create a correct record. Finance cannot cancel. Front office, housekeeping, inactive and anonymous accounts have no expense access.
+
+Expenses paginate 20 rows and filter by inclusive date range and active/cancelled/all. Category summaries always show active expenses in the selected period, independently of the list status filter. Financial reports and their CSV now include active expenses and recorded net cash flow (receipts minus reversals minus expenses), preserving currency separation, including currencies having only expenses. Current receivables remain current, not historical. This is not accounting profit/loss. No receipt upload, refund ledger or approval workflow is included.
+
+Manual acceptance: create an expense dated within the filter, verify category summary and Financial reports/CSV, cancel as management, verify original history and corrected totals. SQL tests cover retries, invalid prices/dates, role denial, cancellation and expense-only financial totals.
+
+## Audit logs
+
+Apply `supabase/migrations/202609290002_audit_logs.sql`, then open **Management -> Audit logs** as OWNER or MANAGER. The page combines existing business-operation histories for rooms/types, guests, reservations, payments and reversals, folio extras, housekeeping, staff, maintenance, expenses and hotel settings. Filter an inclusive date range of at most 366 days, module and staff member. Results are ordered newest first and paginate 50 events.
+
+The unified view reads the authoritative module histories at request time instead of copying them into a second general-purpose event table. A small settings history is added because hotel settings previously had no activity table. The view exposes action metadata, object identifiers, room/reservation/folio labels, monetary amount/currency where relevant, and changed field names. It deliberately omits guest identity/contact values, passwords, bank references, cancellation reasons, expense descriptions and housekeeping/maintenance note contents. Deleted/system actors remain labelled by UUID or as system/deleted staff.
+
+Only OWNER/MANAGER may call the security-definer audit RPC; operational roles, finance, inactive and anonymous users are denied. The staff filter includes inactive profiles still present in the system. Client writes to audit histories remain forbidden. Authentication sign-in/sign-out events and Supabase dashboard administration are outside this business audit log because the application does not persist Auth events. Existing pre-migration settings changes are not fabricated.
+
+Manual acceptance: change Settings, create/cancel an expense, and update a maintenance task; filter each module and actor, then verify sensitive note/reference text is absent. SQL tests cover combined events, actor/module/pagination filters, privacy omissions and role denial.

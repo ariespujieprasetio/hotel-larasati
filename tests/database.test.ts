@@ -50,6 +50,9 @@ test(
         "folio_print.sql",
         "hotel_settings.sql",
         "maintenance.sql",
+        "operational_reports.sql",
+        "expenses.sql",
+        "audit_logs.sql",
       ])
         await runSql("supabase/tests/" + name);
     } finally {
