@@ -1,3 +1,5 @@
+// localized-ui
+import { T } from "@/components/i18n/language-provider";
 import { statusColors, statusLabel, type RoomStatus } from "@/lib/rooms";
 export function StatusBadge({ status }: { status: RoomStatus }) {
   return (
@@ -7,7 +9,7 @@ export function StatusBadge({ status }: { status: RoomStatus }) {
         statusColors[status]
       }
     >
-      {statusLabel(status)}
+      <T>{statusLabel(status)}</T>
     </span>
   );
 }

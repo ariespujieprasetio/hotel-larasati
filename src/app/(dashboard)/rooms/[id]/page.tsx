@@ -1,3 +1,5 @@
+// localized-ui
+import { T } from "@/components/i18n/language-provider";
 import Link from "next/link";
 import { requireStaff } from "@/lib/services/auth";
 import { getRoom, getRoomTypes, getRoomHistory } from "@/lib/services/rooms";
@@ -25,21 +27,26 @@ export default async function RoomDetail({
   return (
     <div className="space-y-6">
       <Link href="/rooms" className="text-sm underline">
-        Back to rooms
+        <T>{"Back to rooms"}</T>
       </Link>
       {query.saved === "1" && (
         <p
           role="status"
           className="rounded-lg bg-emerald-50 p-4 text-emerald-900"
         >
-          Changes saved successfully.
+          <T>{"Changes saved successfully."}</T>
         </p>
       )}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-3xl font-semibold">Room {room.room_number}</h1>
+        <h1 className="text-3xl font-semibold">
+          <T>{"Room "}</T>
+          {room.room_number}
+        </h1>
         {roomManageRoles.includes(profile.role) && (
           <Button asChild>
-            <Link href={"/rooms/" + id + "/edit"}>Edit room</Link>
+            <Link href={"/rooms/" + id + "/edit"}>
+              <T>{"Edit room"}</T>
+            </Link>
           </Button>
         )}
       </div>
@@ -66,13 +73,17 @@ export default async function RoomDetail({
               ["Amenities", type?.amenities.join(", ") || "None listed"],
             ].map(([label, value]) => (
               <div key={String(label)}>
-                <dt className="text-sm text-muted-foreground">{label}</dt>
+                <dt className="text-sm text-muted-foreground">
+                  <T>{label}</T>
+                </dt>
                 <dd className="mt-1 font-medium">{value}</dd>
               </div>
             ))}
           </dl>
           <div className="border-t pt-4">
-            <h2 className="font-medium">Operational notes</h2>
+            <h2 className="font-medium">
+              <T>{"Operational notes"}</T>
+            </h2>
             <p className="mt-2 whitespace-pre-wrap text-sm">
               {room.notes || "No notes."}
             </p>
@@ -83,15 +94,19 @@ export default async function RoomDetail({
         </section>
       </div>
       <section className="rounded-xl border bg-card p-6">
-        <h2 className="text-lg font-semibold">Recent activity</h2>
+        <h2 className="text-lg font-semibold">
+          <T>{"Recent activity"}</T>
+        </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Latest 20 changes · Times shown in WIB
+          <T>{"Latest 20 changes · Times shown in WIB"}</T>
         </p>
         <ul className="mt-4 divide-y">
           {history.map((event) => (
             <li key={event.id} className="py-3 text-sm">
               <p className="font-medium">
-                {event.action === "CREATE" ? "Room created" : "Room updated"}
+                <T>
+                  {event.action === "CREATE" ? "Room created" : "Room updated"}
+                </T>
                 {event.old_data?.status !== event.new_data.status &&
                 event.old_data
                   ? " · " +
@@ -108,13 +123,16 @@ export default async function RoomDetail({
                 }).format(new Date(event.created_at))}
               </p>
               <p className="mt-1 break-all text-xs text-muted-foreground">
-                Staff ID: {event.user_id ?? "System / deleted account"}
+                <T>{"Staff ID: "}</T>
+                {event.user_id ?? "System / deleted account"}
               </p>
             </li>
           ))}
         </ul>
         {!history.length && (
-          <p className="mt-4 text-sm">No recorded changes.</p>
+          <p className="mt-4 text-sm">
+            <T>{"No recorded changes."}</T>
+          </p>
         )}
       </section>
     </div>

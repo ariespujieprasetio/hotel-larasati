@@ -1,3 +1,5 @@
+// localized-ui
+import { T, LocalizedInput } from "@/components/i18n/language-provider";
 import Link from "next/link";
 import { getRoomTypes } from "@/lib/services/rooms";
 import { requireStaff } from "@/lib/services/auth";
@@ -36,13 +38,17 @@ export default async function RoomTypesPage({
   return (
     <div className="space-y-6">
       <Link href="/rooms" className="text-sm underline">
-        Back to rooms
+        <T>{"Back to rooms"}</T>
       </Link>
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-3xl font-semibold">Room types</h1>
+        <h1 className="text-3xl font-semibold">
+          <T>{"Room types"}</T>
+        </h1>
         {roomManageRoles.includes(profile.role) && (
           <Button asChild>
-            <Link href="/rooms/types/new">Add room type</Link>
+            <Link href="/rooms/types/new">
+              <T>{"Add room type"}</T>
+            </Link>
           </Button>
         )}
       </div>
@@ -51,33 +57,40 @@ export default async function RoomTypesPage({
           role="status"
           className="rounded-lg bg-emerald-50 p-4 text-emerald-900"
         >
-          Room type saved successfully.
+          <T>{"Room type saved successfully."}</T>
         </p>
       )}
       <form className="flex flex-wrap items-end gap-3 rounded-xl border bg-card p-4">
         <label className="text-sm">
-          Search by name
-          <input
+          <T>{"Search by name"}</T>
+          <LocalizedInput
             name="q"
             defaultValue={q}
             className="ml-2 rounded-md border p-2"
           />
         </label>
         <label className="text-sm">
-          Inventory
+          <T>{"Inventory"}</T>
           <select
             name="active"
             defaultValue={active}
             className="ml-2 rounded-md border p-2"
           >
-            <option value="active">Active</option>
-            <option value="all">All types</option>
+            <option value="active">
+              <T>{"Active"}</T>
+            </option>
+            <option value="all">
+              <T>{"All types"}</T>
+            </option>
           </select>
         </label>
-        <Button>Search</Button>
+        <Button>
+          <T>{"Search"}</T>
+        </Button>
       </form>
       <p className="text-sm text-muted-foreground">
-        {filtered.length} room types · Sorted by name
+        {filtered.length}
+        <T>{" room types · Sorted by name"}</T>
       </p>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {current.map((type) => (
@@ -88,18 +101,23 @@ export default async function RoomTypesPage({
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-xl font-semibold">{type.name}</h2>
               <span className="text-xs">
-                {type.is_active ? "Active" : "Inactive"}
+                <T>{type.is_active ? "Active" : "Inactive"}</T>
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
-              {type.capacity} guests · {type.bed_type}
+              {type.capacity}
+              <T>{" guests · "}</T>
+              {type.bed_type}
             </p>
             <p className="font-semibold">
               {new Intl.NumberFormat("id-ID", {
                 style: "currency",
                 currency: "IDR",
-              }).format(type.base_price)}{" "}
-              <span className="text-sm font-normal">/ night</span>
+              }).format(type.base_price)}
+              <T> </T>
+              <span className="text-sm font-normal">
+                <T>{"/ night"}</T>
+              </span>
             </p>
             <p className="text-sm whitespace-pre-wrap">
               {type.description || "No description."}
@@ -110,7 +128,7 @@ export default async function RoomTypesPage({
             {roomManageRoles.includes(profile.role) && (
               <Button variant="outline" asChild>
                 <Link href={"/rooms/types/" + type.id + "/edit"}>
-                  Edit type
+                  <T>{"Edit type"}</T>
                 </Link>
               </Button>
             )}
@@ -119,18 +137,22 @@ export default async function RoomTypesPage({
       </div>
       {!filtered.length && (
         <p className="rounded-xl border bg-card p-8 text-center">
-          No room types found. Add your first room type or adjust the filters.
+          <T>
+            {
+              "No room types found. Add your first room type or adjust the filters."
+            }
+          </T>
         </p>
       )}
       <nav aria-label="Room type pagination" className="flex gap-3">
         {page > 1 && (
           <Link className="underline" href={url(page - 1)}>
-            Previous
+            <T>{"Previous"}</T>
           </Link>
         )}
         {page * 12 < filtered.length && (
           <Link className="underline" href={url(page + 1)}>
-            Next
+            <T>{"Next"}</T>
           </Link>
         )}
       </nav>

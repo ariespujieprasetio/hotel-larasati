@@ -1,11 +1,22 @@
 "use client";
+// localized-ui
+import { T } from "@/components/i18n/language-provider";
+
 import { Button } from "@/components/ui/button";
 export default function ReportError({ reset }: { reset: () => void }) {
   return (
     <section role="alert">
-      <h1>Report unavailable</h1>
-      <p>Check your connection and apply the payment reports migration.</p>
-      <Button onClick={reset}>Try again</Button>
+      <h1>
+        <T>{"Report unavailable"}</T>
+      </h1>
+      <p>
+        <T>
+          {"Check your connection and apply the payment reports migration."}
+        </T>
+      </p>
+      <Button onClick={reset}>
+        <T>{"Try again"}</T>
+      </Button>
     </section>
   );
 }

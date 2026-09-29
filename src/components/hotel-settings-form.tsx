@@ -1,4 +1,11 @@
 "use client";
+// localized-ui
+import {
+  T,
+  LocalizedInput,
+  LocalizedTextarea,
+} from "@/components/i18n/language-provider";
+
 import { useState, useTransition } from "react";
 import { useRouter, unstable_rethrow } from "next/navigation";
 import type { HotelSettings } from "@/types/database";
@@ -105,8 +112,8 @@ export function HotelSettingsForm({
       <fieldset disabled={pending} className="grid gap-5 sm:grid-cols-2">
         {fields.map((f) => (
           <label key={f.name} className="block text-sm">
-            {f.label}
-            <input
+            <T>{f.label}</T>
+            <LocalizedInput
               name={f.name}
               defaultValue={f.value}
               type={f.type ?? "text"}
@@ -121,8 +128,8 @@ export function HotelSettingsForm({
           </label>
         ))}
         <label className="text-sm sm:col-span-2">
-          Address
-          <textarea
+          <T>{"Address"}</T>
+          <LocalizedTextarea
             name="address"
             defaultValue={s.address ?? ""}
             maxLength={1000}
@@ -132,29 +139,31 @@ export function HotelSettingsForm({
         </label>
       </fieldset>
       <p className="text-sm text-muted-foreground">
-        Tax and service apply to new or repriced reservation quotes. Existing
-        agreed prices and closed bills stay unchanged. Changing currency does
-        not convert room prices; review room type prices before creating new
-        bookings.
+        <T>
+          {
+            "Tax and service apply to new or repriced reservation quotes. Existing agreed prices and closed bills stay unchanged. Changing currency does not convert room prices; review room type prices before creating new bookings."
+          }
+        </T>
       </p>
       <p className="text-sm text-muted-foreground">
-        Hotel contact details appear on newly printed bills, including old
-        folios. The reservation prefix applies to new bookings; existing numbers
-        remain unchanged. Times are defaults, not automatic arrival/departure
-        restrictions.
+        <T>
+          {
+            "Hotel contact details appear on newly printed bills, including old folios. The reservation prefix applies to new bookings; existing numbers remain unchanged. Times are defaults, not automatic arrival/departure restrictions."
+          }
+        </T>
       </p>
       {error && (
         <p role="alert" className="text-destructive">
-          {error}
+          <T>{error}</T>
         </p>
       )}
       {saved && (
         <p role="status" className="text-emerald-800">
-          Settings saved.
+          <T>{"Settings saved."}</T>
         </p>
       )}
       <Button disabled={pending}>
-        {pending ? "Saving..." : "Save settings"}
+        <T>{pending ? "Saving..." : "Save settings"}</T>
       </Button>
     </form>
   );

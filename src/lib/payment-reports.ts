@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { translate, type Locale } from "@/lib/i18n/messages";
 export const reportDates = z
   .object({ from: z.iso.date(), to: z.iso.date() })
   .refine((v) => {
@@ -30,7 +31,7 @@ export type PaymentReport = {
   totals: PaymentReportRow[];
   methods: (PaymentReportRow & { method: string })[];
 };
-export function paymentReportCsv(report: PaymentReport) {
+export function paymentReportCsv(report: PaymentReport, locale: Locale = "en") {
   const rows: (string | number)[][] = [
     [
       "From (WIB)",
@@ -42,13 +43,13 @@ export function paymentReportCsv(report: PaymentReport) {
       "Received",
       "Reversed",
       "Net received",
-    ],
+    ].map((heading) => translate(locale, heading)),
     ...report.methods.map((r) => [
       report.from,
       report.to,
       report.generated_at,
       r.currency,
-      r.method,
+      translate(locale, r.method),
       r.entries,
       r.received,
       r.reversed,

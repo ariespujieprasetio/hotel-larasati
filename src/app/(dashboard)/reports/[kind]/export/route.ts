@@ -1,4 +1,6 @@
 import { unstable_rethrow } from "next/navigation";
+import { cookies } from "next/headers";
+import { localeCookie, parseLocale } from "@/lib/i18n/messages";
 import { requireStaff } from "@/lib/services/auth";
 import { getOperationalReport } from "@/lib/services/operational-reports";
 import {
@@ -28,7 +30,8 @@ export async function GET(
       return new Response("Invalid dates", { status: 400, headers });
     const { from, to } = dates.data;
     const report = await getOperationalReport(kind as ReportKind, from, to);
-    return new Response(operationalCsv(report), {
+    const locale = parseLocale((await cookies()).get(localeCookie)?.value);
+    return new Response(operationalCsv(report, locale), {
       headers: {
         ...headers,
         "Content-Type": "text/csv; charset=utf-8",

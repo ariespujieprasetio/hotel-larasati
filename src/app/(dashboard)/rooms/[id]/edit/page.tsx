@@ -1,3 +1,5 @@
+// localized-ui
+import { T } from "@/components/i18n/language-provider";
 import { requireRole } from "@/lib/services/auth";
 import { roomManageRoles } from "@/lib/rooms";
 import { getRoom, getRoomTypes } from "@/lib/services/rooms";
@@ -13,7 +15,10 @@ export default async function EditRoom({
   const [room, types] = await Promise.all([getRoom(id), getRoomTypes()]);
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-semibold">Edit room {room.room_number}</h1>
+      <h1 className="text-3xl font-semibold">
+        <T>{"Edit room "}</T>
+        {room.room_number}
+      </h1>
       <RoomForm key={room.version} room={room} types={types} />
     </div>
   );

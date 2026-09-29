@@ -1,3 +1,5 @@
+// localized-ui
+import { T } from "@/components/i18n/language-provider";
 import Link from "next/link";
 import { requireRole } from "@/lib/services/auth";
 import { reservationRoles } from "@/lib/reservations";
@@ -20,21 +22,25 @@ export default async function EditReservation({
     return (
       <div className="space-y-4">
         <h1 className="text-xl font-semibold">
-          This booking can no longer be edited
+          <T>{"This booking can no longer be edited"}</T>
         </h1>
         <Link className="underline" href={"/reservations/" + id}>
-          Back to reservation
+          <T>{"Back to reservation"}</T>
         </Link>
       </div>
     );
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-semibold">
-        Edit {reservation.reservation_number}
+        <T>{"Edit "}</T>
+        {reservation.reservation_number}
       </h1>
       <p className="text-sm text-muted-foreground">
-        Changing dates, room type or discount recalculates current rates. Other
-        edits retain the saved price.
+        <T>
+          {
+            "Changing dates, room type or discount recalculates current rates. Other edits retain the saved price."
+          }
+        </T>
       </p>
       <ReservationForm
         key={reservation.version}

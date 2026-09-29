@@ -1,3 +1,5 @@
+// localized-ui
+import { T, LocalizedInput } from "@/components/i18n/language-provider";
 import Link from "next/link";
 import { requireStaff } from "@/lib/services/auth";
 import { getHotelSettings } from "@/lib/services/hotel";
@@ -18,7 +20,11 @@ export default async function ExpensesPage({
 }) {
   const { supabase, profile } = await requireStaff();
   if (!["OWNER", "MANAGER", "FINANCE"].includes(profile.role))
-    return <p role="alert">Your role cannot access expenses.</p>;
+    return (
+      <p role="alert">
+        <T>{"Your role cannot access expenses."}</T>
+      </p>
+    );
   const q = await searchParams;
   const defaults = defaultReportDates();
   const from = q.from ?? defaults.from;
@@ -51,17 +57,21 @@ export default async function ExpensesPage({
     "?" + new URLSearchParams({ from, to, status, page: String(p) });
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-semibold">Expenses</h1>
+      <h1 className="text-3xl font-semibold">
+        <T>{"Expenses"}</T>
+      </h1>
       <p>
-        Record money already paid. Cancellation corrects an incorrect record; it
-        does not issue or record a refund. Original details and cancellation
-        history are retained.
+        <T>
+          {
+            "Record money already paid. Cancellation corrects an incorrect record; it does not issue or record a refund. Original details and cancellation history are retained."
+          }
+        </T>
       </p>
       <ExpenseForm today={defaults.to} currency={hotel.default_currency} />
       <form className="flex flex-wrap items-end gap-3">
         <label>
-          From
-          <input
+          <T>{"From"}</T>
+          <LocalizedInput
             type="date"
             name="from"
             required
@@ -70,8 +80,8 @@ export default async function ExpensesPage({
           />
         </label>
         <label>
-          Through
-          <input
+          <T>{"Through"}</T>
+          <LocalizedInput
             type="date"
             name="to"
             required
@@ -85,58 +95,79 @@ export default async function ExpensesPage({
           className="rounded border p-2"
         >
           {["active", "cancelled", "all"].map((s) => (
-            <option key={s}>{s}</option>
+            <option key={s}>
+              <T>{s}</T>
+            </option>
           ))}
         </select>
-        <button className="rounded border p-2">Filter</button>
+        <button className="rounded border p-2">
+          <T>{"Filter"}</T>
+        </button>
       </form>
       {!valid.success && (
-        <p role="alert">Select valid dates in order, at most 366 days.</p>
+        <p role="alert">
+          <T>{"Select valid dates in order, at most 366 days."}</T>
+        </p>
       )}
       {summary && (
         <section className="space-y-2">
           <h2 className="text-xl font-semibold">
-            Active expenses by currency and category
+            <T>{"Active expenses by currency and category"}</T>
           </h2>
           {summary.data?.length ? (
             summary.data.map((r) => (
               <p key={r.currency + r.category}>
                 {r.currency} &middot; {r.category} &middot; {r.amount} (
-                {r.entries} entries)
+                {r.entries}
+                <T>{" entries)"}</T>
               </p>
             ))
           ) : (
-            <p>No active expenses in this period.</p>
+            <p>
+              <T>{"No active expenses in this period."}</T>
+            </p>
           )}
           <Link
             href={"/reports/financial?" + new URLSearchParams({ from, to })}
             className="underline"
           >
-            Financial totals and CSV
+            <T>{"Financial totals and CSV"}</T>
           </Link>
         </section>
       )}
       <div className="divide-y rounded-xl border">
         {data && !data.data.length && (
-          <p className="p-5">No expenses match this filter.</p>
+          <p className="p-5">
+            <T>{"No expenses match this filter."}</T>
+          </p>
         )}
         {data?.data.map((e) => (
           <article key={e.id} className="space-y-3 p-5">
             <h2 className="font-semibold">
-              {e.paid_on} &middot; {e.category} &middot;{" "}
+              {e.paid_on} &middot; {e.category} &middot;<T> </T>
               {money(e.amount, e.currency)} {e.voided_at && "(Cancelled)"}
             </h2>
             <p className="whitespace-pre-wrap break-words">{e.description}</p>
             <p>
-              {e.method} &middot; Reference: {e.reference || "Cash"}
+              {e.method}
+              <T>{" \u00b7 Reference: "}</T>
+              {e.reference || "Cash"}
             </p>
             <p className="break-all text-xs">
-              Recorded {billingDate(e.created_at)} WIB by {e.created_by}{" "}
-              &middot; Entry {e.id}
+              <T>{"Recorded "}</T>
+              {billingDate(e.created_at)}
+              <T>{" WIB by "}</T>
+              {e.created_by}
+              <T> </T>
+              <T>{"\u00b7 Entry "}</T>
+              {e.id}
             </p>
             {e.voided_at ? (
               <p className="break-words">
-                Cancelled {billingDate(e.voided_at)} WIB by {e.voided_by}:{" "}
+                <T>{"Cancelled "}</T>
+                {billingDate(e.voided_at)}
+                <T>{" WIB by "}</T>
+                {e.voided_by}:<T> </T>
                 {e.void_reason}
               </p>
             ) : (
@@ -148,9 +179,15 @@ export default async function ExpensesPage({
         ))}
       </div>
       <nav className="flex gap-4">
-        {page > 1 && <Link href={href(page - 1)}>Previous</Link>}
+        {page > 1 && (
+          <Link href={href(page - 1)}>
+            <T>{"Previous"}</T>
+          </Link>
+        )}
         {page * 20 < (data?.count ?? 0) && (
-          <Link href={href(page + 1)}>Next</Link>
+          <Link href={href(page + 1)}>
+            <T>{"Next"}</T>
+          </Link>
         )}
       </nav>
     </div>

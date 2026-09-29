@@ -1,4 +1,11 @@
 "use client";
+// localized-ui
+import {
+  T,
+  LocalizedTextarea,
+  LocalizedInput,
+} from "@/components/i18n/language-provider";
+
 import { useState, useTransition } from "react";
 import { useRouter, unstable_rethrow } from "next/navigation";
 import { updateHousekeeping } from "@/app/(dashboard)/housekeeping/actions";
@@ -26,15 +33,19 @@ export function HousekeepingForm({
   if (task.closed_at || role === "FRONT_OFFICE")
     return (
       <p className="text-sm text-muted-foreground">
-        {task.closed_at
-          ? "This job is closed. Its history is retained."
-          : "Front office can review housekeeping progress."}
+        <T>
+          {task.closed_at
+            ? "This job is closed. Its history is retained."
+            : "Front office can review housekeeping progress."}
+        </T>
       </p>
     );
   if (!management && task.assigned_to && !mine)
     return (
       <p className="text-sm text-muted-foreground">
-        Assigned to {task.assignee_name}. Management can reassign this task.
+        <T>{"Assigned to "}</T>
+        {task.assignee_name}
+        <T>{". Management can reassign this task."}</T>
       </p>
     );
   function submit(
@@ -66,7 +77,9 @@ export function HousekeepingForm({
   }
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold">Manage cleaning</h2>
+      <h2 className="text-xl font-semibold">
+        <T>{"Manage cleaning"}</T>
+      </h2>
       {management ? (
         <form
           className="space-y-3"
@@ -77,18 +90,20 @@ export function HousekeepingForm({
           }}
         >
           <label className="block text-sm">
-            Assigned staff
+            <T>{"Assigned staff"}</T>
             <select
               name="assignee"
               defaultValue={task.assigned_to ?? ""}
               disabled={pending}
               className="mt-1 h-10 w-full rounded-md border px-3"
             >
-              <option value="">Unassigned</option>
+              <option value="">
+                <T>{"Unassigned"}</T>
+              </option>
               {task.assigned_to &&
                 !staff.some((s) => s.id === task.assigned_to) && (
                   <option value={task.assigned_to}>
-                    Current assignee unavailable - reassign
+                    <T>{"Current assignee unavailable - reassign"}</T>
                   </option>
                 )}
               {staff.map((s) => (
@@ -100,12 +115,15 @@ export function HousekeepingForm({
           </label>
           {!staff.length && (
             <p className="text-sm text-muted-foreground">
-              No active housekeeping accounts. Management can still progress the
-              task.
+              <T>
+                {
+                  "No active housekeeping accounts. Management can still progress the task."
+                }
+              </T>
             </p>
           )}
           <Button variant="outline" disabled={pending}>
-            Save assignment
+            <T>{"Save assignment"}</T>
           </Button>
         </form>
       ) : (
@@ -115,7 +133,7 @@ export function HousekeepingForm({
             disabled={pending}
             onClick={() => submit("ASSIGN", "", userId)}
           >
-            Take this task
+            <T>{"Take this task"}</T>
           </Button>
         )
       )}
@@ -127,8 +145,8 @@ export function HousekeepingForm({
         }}
       >
         <label className="block text-sm">
-          Cleaning or inspection note (optional)
-          <textarea
+          <T>{"Cleaning or inspection note (optional)"}</T>
+          <LocalizedTextarea
             name="note"
             maxLength={2000}
             disabled={pending}
@@ -136,17 +154,21 @@ export function HousekeepingForm({
           />
         </label>
         <p className="text-sm text-muted-foreground">
-          {!management && !mine
-            ? "Progressing will assign this task to you. "
-            : ""}
-          Confirm the work is complete before advancing the room status.
+          <T>
+            {!management && !mine
+              ? "Progressing will assign this task to you. "
+              : ""}
+          </T>
+          <T>
+            {"Confirm the work is complete before advancing the room status."}
+          </T>
         </p>
         <label className="flex gap-2 text-sm">
-          <input type="checkbox" required disabled={pending} />I verified the
-          room is ready for this step.
+          <LocalizedInput type="checkbox" required disabled={pending} />
+          <T>{"I verified the room is ready for this step."}</T>
         </label>
         <Button disabled={pending}>
-          {pending ? "Saving..." : housekeepingNext[task.status]}
+          <T>{pending ? "Saving..." : housekeepingNext[task.status]}</T>
         </Button>
       </form>
       {(management || mine) && (
@@ -158,8 +180,8 @@ export function HousekeepingForm({
           }}
         >
           <label className="block text-sm">
-            Add a note without changing status
-            <textarea
+            <T>{"Add a note without changing status"}</T>
+            <LocalizedTextarea
               name="note"
               required
               maxLength={2000}
@@ -168,13 +190,13 @@ export function HousekeepingForm({
             />
           </label>
           <Button variant="outline" disabled={pending}>
-            Save note
+            <T>{"Save note"}</T>
           </Button>
         </form>
       )}
       {error && (
         <p role="alert" className="text-sm text-destructive">
-          {error}
+          <T>{error}</T>
         </p>
       )}
       {success && (

@@ -1,3 +1,5 @@
+// localized-ui
+import { T } from "@/components/i18n/language-provider";
 import Link from "next/link";
 import { getStaff } from "@/lib/services/staff";
 import { StaffForm } from "@/components/users/staff-form";
@@ -15,7 +17,7 @@ export default async function StaffPage({
   return (
     <div className="space-y-6">
       <Link href="/users" className="text-sm underline">
-        Back to staff
+        <T>{"Back to staff"}</T>
       </Link>
       <h1 className="text-3xl font-semibold">{staff.full_name}</h1>
       {query.saved === "1" && (
@@ -23,14 +25,16 @@ export default async function StaffPage({
           role="status"
           className="rounded-lg bg-emerald-50 p-4 text-emerald-900"
         >
-          Staff account saved.
+          <T>{"Staff account saved."}</T>
         </p>
       )}
       {query.setup === "pending" && (
         <p role="alert" className="rounded-lg bg-amber-50 p-4 text-amber-900">
-          The Auth account was created, but profile setup could not be
-          confirmed. Review the current role and active status below, then save.
-          Do not create the account again.
+          <T>
+            {
+              "The Auth account was created, but profile setup could not be confirmed. Review the current role and active status below, then save. Do not create the account again."
+            }
+          </T>
         </p>
       )}
       {profile.role === "OWNER" ? (
@@ -44,28 +48,40 @@ export default async function StaffPage({
           <p>{staff.email}</p>
           <p>{staff.phone || "No phone recorded"}</p>
           <p>
-            {staff.role} &middot; {staff.is_active ? "Active" : "Inactive"}
+            {staff.role} &middot;{" "}
+            <T>{staff.is_active ? "Active" : "Inactive"}</T>
           </p>
           <p className="text-sm text-muted-foreground">
-            Managers can review staff accounts. An owner must make changes.
+            <T>
+              {
+                "Managers can review staff accounts. An owner must make changes."
+              }
+            </T>
           </p>
         </section>
       )}
       <section className="rounded-xl border bg-card p-6">
-        <h2 className="text-xl font-semibold">Account activity</h2>
+        <h2 className="text-xl font-semibold">
+          <T>{"Account activity"}</T>
+        </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Latest {Math.min(activityCount, 50)} of {activityCount} events
-          &middot; WIB
+          <T>{"Latest "}</T>
+          {Math.min(activityCount, 50)}
+          <T>{" of "}</T>
+          {activityCount}
+          <T>{" events \u00b7 WIB"}</T>
         </p>
         {!activity.length && (
           <p className="mt-4 text-sm">
-            No changes recorded since staff management was enabled.
+            <T>{"No changes recorded since staff management was enabled."}</T>
           </p>
         )}
         <ul className="mt-4 divide-y">
           {activity.map((a) => (
             <li key={a.id} className="space-y-2 py-3 text-sm">
-              <p className="font-medium">{a.action}</p>
+              <p className="font-medium">
+                <T>{a.action}</T>
+              </p>
               <p>{a.changed_fields.join(", ") || "Profile saved"}</p>
               <p>
                 {new Intl.DateTimeFormat("en-GB", {
@@ -75,7 +91,8 @@ export default async function StaffPage({
                 }).format(new Date(a.created_at))}
               </p>
               <p className="break-all text-xs text-muted-foreground">
-                Actor: {a.user_id ?? "Authentication / system"}
+                <T>{"Actor: "}</T>
+                {a.user_id ?? "Authentication / system"}
               </p>
             </li>
           ))}

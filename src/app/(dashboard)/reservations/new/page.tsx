@@ -1,3 +1,5 @@
+// localized-ui
+import { T } from "@/components/i18n/language-provider";
 import { requireRole } from "@/lib/services/auth";
 import { reservationRoles } from "@/lib/reservations";
 import { getRoomTypes } from "@/lib/services/rooms";
@@ -24,7 +26,9 @@ export default async function NewReservation({
     : undefined;
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-semibold">New reservation</h1>
+      <h1 className="text-3xl font-semibold">
+        <T>{"New reservation"}</T>
+      </h1>
       <ReservationForm
         types={types}
         role={profile.role}

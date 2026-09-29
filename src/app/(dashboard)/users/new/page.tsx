@@ -1,3 +1,5 @@
+// localized-ui
+import { T } from "@/components/i18n/language-provider";
 import Link from "next/link";
 import { requireRole } from "@/lib/services/auth";
 import { hasStaffAdminConfig } from "@/lib/supabase/admin";
@@ -8,9 +10,11 @@ export default async function NewStaffPage() {
   return (
     <div className="space-y-6">
       <Link href="/users" className="text-sm underline">
-        Back to staff
+        <T>{"Back to staff"}</T>
       </Link>
-      <h1 className="text-3xl font-semibold">Add staff account</h1>
+      <h1 className="text-3xl font-semibold">
+        <T>{"Add staff account"}</T>
+      </h1>
       {hasStaffAdminConfig() ? (
         <StaffForm currentUserId={profile.id} />
       ) : (
@@ -19,15 +23,25 @@ export default async function NewStaffPage() {
           className="space-y-3 rounded-xl border bg-card p-6"
         >
           <h2 className="text-xl font-semibold">
-            Account creation needs server setup
+            <T>{"Account creation needs server setup"}</T>
           </h2>
           <p>
-            Add <code>SUPABASE_SECRET_KEY</code> to the server environment and
-            restart the app. Follow the Staff management section in README.
+            <T>{"Add "}</T>
+            <code>
+              <T>{"SUPABASE_SECRET_KEY"}</T>
+            </code>
+            <T>
+              {
+                " to the server environment and restart the app. Follow the Staff management section in README."
+              }
+            </T>
           </p>
           <p>
-            You can still edit roles and activate accounts already created in
-            Supabase Authentication from the Users list.
+            <T>
+              {
+                "You can still edit roles and activate accounts already created in Supabase Authentication from the Users list."
+              }
+            </T>
           </p>
         </section>
       )}

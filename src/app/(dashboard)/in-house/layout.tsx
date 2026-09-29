@@ -1,3 +1,5 @@
+// localized-ui
+import { T } from "@/components/i18n/language-provider";
 import { requireStaff } from "@/lib/services/auth";
 import { reservationRoles } from "@/lib/reservations";
 export default async function ReservationLayout({
@@ -9,9 +11,11 @@ export default async function ReservationLayout({
   if (!reservationRoles.includes(profile.role))
     return (
       <section role="alert" className="rounded-xl border bg-card p-6">
-        <h1 className="text-xl font-semibold">Access restricted</h1>
+        <h1 className="text-xl font-semibold">
+          <T>{"Access restricted"}</T>
+        </h1>
         <p className="mt-2">
-          Your role cannot access arrivals or in-house guests.
+          <T>{"Your role cannot access arrivals or in-house guests."}</T>
         </p>
       </section>
     );

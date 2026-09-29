@@ -1,3 +1,5 @@
+// localized-ui
+import { T } from "@/components/i18n/language-provider";
 import Link from "next/link";
 import { CheckInForm } from "@/components/reservations/check-in-form";
 import { getReservationContext } from "@/lib/services/reservations";
@@ -20,14 +22,14 @@ export default async function ReservationDetail({
   return (
     <div className="space-y-6">
       <Link className="text-sm underline" href="/reservations">
-        Back to reservations
+        <T>{"Back to reservations"}</T>
       </Link>
       {query.saved === "1" && (
         <p
           role="status"
           className="rounded-lg bg-emerald-50 p-4 text-emerald-900"
         >
-          Reservation saved successfully.
+          <T>{"Reservation saved successfully."}</T>
         </p>
       )}
       <header className="flex flex-wrap items-center justify-between gap-4">
@@ -39,13 +41,17 @@ export default async function ReservationDetail({
         </div>
         {["PENDING", "CONFIRMED"].includes(r.status) && (
           <Button asChild>
-            <Link href={"/reservations/" + id + "/edit"}>Edit booking</Link>
+            <Link href={"/reservations/" + id + "/edit"}>
+              <T>{"Edit booking"}</T>
+            </Link>
           </Button>
         )}
       </header>
       <div className="grid gap-6 lg:grid-cols-3">
         <section className="space-y-5 rounded-xl border bg-card p-6 lg:col-span-2">
-          <h2 className="text-xl font-semibold">Guest & stay</h2>
+          <h2 className="text-xl font-semibold">
+            <T>{"Guest & stay"}</T>
+          </h2>
           <Link
             href={"/guests/" + guest.id}
             className="font-semibold underline"
@@ -53,20 +59,22 @@ export default async function ReservationDetail({
             {guest.full_name} · {guest.guest_code}
           </Link>
           <dl className="grid gap-4 sm:grid-cols-2">
-            {[
-              ["Room", room.room_number + " · " + roomType.name],
-              ["Room readiness", room.status.replaceAll("_", " ")],
-              ["Check-in", r.check_in_date],
-              ["Check-out", r.check_out_date],
-              ["Guests", r.adults + " adults, " + r.children + " children"],
-              ["Source", r.source.replaceAll("_", " ")],
-              ["Phone", guest.phone || "Not recorded"],
-            ].map(([label, value]) => (
-              <div key={label}>
-                <dt className="text-sm text-muted-foreground">{label}</dt>
-                <dd className="mt-1 font-medium">{value}</dd>
-              </div>
-            ))}
+            <T>
+              {[
+                ["Room", room.room_number + " · " + roomType.name],
+                ["Room readiness", room.status.replaceAll("_", " ")],
+                ["Check-in", r.check_in_date],
+                ["Check-out", r.check_out_date],
+                ["Guests", r.adults + " adults, " + r.children + " children"],
+                ["Source", r.source.replaceAll("_", " ")],
+                ["Phone", guest.phone || "Not recorded"],
+              ].map(([label, value]) => (
+                <div key={label}>
+                  <dt className="text-sm text-muted-foreground">{label}</dt>
+                  <dd className="mt-1 font-medium">{value}</dd>
+                </div>
+              ))}
+            </T>
           </dl>
           <QuoteSummary
             quote={{
@@ -75,24 +83,32 @@ export default async function ReservationDetail({
             }}
           />
           <p className="text-xs text-muted-foreground">
-            Service charge applies after discount. Tax applies to the discounted
-            room subtotal plus service charge.
+            <T>
+              {
+                "Service charge applies after discount. Tax applies to the discounted room subtotal plus service charge."
+              }
+            </T>
           </p>
           <div>
-            <h3 className="font-medium">Special requests</h3>
+            <h3 className="font-medium">
+              <T>{"Special requests"}</T>
+            </h3>
             <p className="mt-2 whitespace-pre-wrap text-sm">
               {r.special_request || "None."}
             </p>
           </div>
           <div>
-            <h3 className="font-medium">Staff notes</h3>
+            <h3 className="font-medium">
+              <T>{"Staff notes"}</T>
+            </h3>
             <p className="mt-2 whitespace-pre-wrap text-sm">
               {r.notes || "None."}
             </p>
           </div>
           {r.cancellation_reason && (
             <p className="rounded-lg bg-muted p-3 text-sm">
-              Closure reason: {r.cancellation_reason}
+              <T>{"Closure reason: "}</T>
+              {r.cancellation_reason}
             </p>
           )}
         </section>
@@ -106,7 +122,7 @@ export default async function ReservationDetail({
                 encodeURIComponent(r.reservation_number)
               }
             >
-              Open guest bill
+              <T>{"Open guest bill"}</T>
             </Link>
           )}
           {r.status === "CONFIRMED" && (
@@ -119,36 +135,45 @@ export default async function ReservationDetail({
           )}
           {r.status === "CHECKED_IN" && (
             <Link href="/in-house" className="underline">
-              View in-house guests
+              <T>{"View in-house guests"}</T>
             </Link>
           )}
           <p className="text-sm text-muted-foreground">
-            Confirm the booking before checking in. After arrival, open the
-            guest bill to record payments and check out.
+            <T>
+              {
+                "Confirm the booking before checking in. After arrival, open the guest bill to record payments and check out."
+              }
+            </T>
           </p>
         </aside>
       </div>
       <section className="rounded-xl border bg-card p-6">
-        <h2 className="text-xl font-semibold">Recent booking activity</h2>
+        <h2 className="text-xl font-semibold">
+          <T>{"Recent booking activity"}</T>
+        </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Latest 20 changes · WIB
+          <T>{"Latest 20 changes · WIB"}</T>
         </p>
         <ul className="mt-4 divide-y">
-          {activity.map((event) => (
-            <li key={event.id} className="space-y-1 py-3 text-sm">
-              <p className="font-medium">{event.action.replaceAll("_", " ")}</p>
-              <p className="text-muted-foreground">
-                {new Intl.DateTimeFormat("en-GB", {
-                  timeZone: "Asia/Jakarta",
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                }).format(new Date(event.created_at))}
-              </p>
-              <p className="break-all text-xs text-muted-foreground">
-                Staff ID: {event.user_id ?? "System"}
-              </p>
-            </li>
-          ))}
+          <T>
+            {activity.map((event) => (
+              <li key={event.id} className="space-y-1 py-3 text-sm">
+                <p className="font-medium">
+                  {event.action.replaceAll("_", " ")}
+                </p>
+                <p className="text-muted-foreground">
+                  {new Intl.DateTimeFormat("en-GB", {
+                    timeZone: "Asia/Jakarta",
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  }).format(new Date(event.created_at))}
+                </p>
+                <p className="break-all text-xs text-muted-foreground">
+                  Staff ID: {event.user_id ?? "System"}
+                </p>
+              </li>
+            ))}
+          </T>
         </ul>
       </section>
     </div>

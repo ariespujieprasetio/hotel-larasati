@@ -1,4 +1,7 @@
 "use client";
+// localized-ui
+import { T } from "@/components/i18n/language-provider";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -15,6 +18,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useState } from "react";
+import { LanguageSwitcher } from "@/components/i18n/language-provider";
 import { logout } from "@/app/(auth)/login/actions";
 import type { Profile, Role } from "@/types/database";
 import { Button } from "@/components/ui/button";
@@ -100,20 +104,22 @@ function Sidebar({
   const pathname = usePathname();
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
-      <div className="flex items-center gap-3 px-6 py-7">
-        <span className="rounded-xl border border-white/20 p-2">
-          <Building2 className="size-6 text-amber-200" />
+      <div className="flex items-center gap-3 px-6 py-8">
+        <span className="flex size-10 items-center justify-center rounded-full border border-[#bca575]/50">
+          <Building2 className="size-5 text-[#d1bc91]" />
         </span>
         <div>
-          <p className="font-semibold tracking-wide">LARASATI</p>
-          <p className="mt-1 text-[10px] tracking-[0.2em] text-white/50">
-            HOTEL MANAGEMENT
+          <p className="font-serif text-xl tracking-[0.12em]">
+            <T>{"LARASATI"}</T>
+          </p>
+          <p className="mt-1 text-[8px] tracking-[0.25em] text-[#bbb6a8]">
+            <T>{"HOTEL MANAGEMENT"}</T>
           </p>
         </div>
       </div>
       <nav
         aria-label="Main navigation"
-        className="flex-1 space-y-6 overflow-y-auto px-4 pb-6"
+        className="workspace-nav min-h-0 flex-1 space-y-2 overflow-y-auto px-4 pb-6"
       >
         {all.includes(role) && (
           <Link
@@ -121,23 +127,34 @@ function Sidebar({
             aria-current={pathname === "/dashboard" ? "page" : undefined}
             onClick={onNavigate}
             className={
-              "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium " +
-              (pathname === "/dashboard" ? "bg-white/10" : "hover:bg-white/5")
+              "mb-6 flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors " +
+              (pathname === "/dashboard"
+                ? "bg-[#c3a66c] text-[#252723]"
+                : "text-[#d1ccbf] hover:bg-white/5")
             }
           >
-            <LayoutDashboard className="size-4 text-amber-200" />
-            Dashboard
+            <LayoutDashboard className="size-4" />
+            <T>{"Overview"}</T>
           </Link>
         )}
         {navigation
           .filter((group) => group.roles.includes(role))
           .map((group) => (
-            <div key={group.title}>
-              <div className="mb-2 flex items-center gap-2 px-3 text-[10px] font-semibold tracking-widest text-white/45 uppercase">
-                <group.icon className="size-3" />
-                {group.title}
-              </div>
-              <ul className="space-y-1">
+            <details
+              key={group.title + pathname.split("/")[1]}
+              open={
+                group.items.some((item) =>
+                  pathname.startsWith(activeRoutes[item]),
+                ) || group.title === "Front office"
+              }
+              className="group"
+            >
+              <summary className="flex cursor-pointer list-none items-center gap-3 rounded-lg px-3 py-3 text-xs font-medium text-[#c9c4b7] transition-colors hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-[#c3a66c]">
+                <group.icon className="size-4 text-[#a89877]" />
+                <T>{group.title}</T>
+                <ChevronRight className="nav-chevron ml-auto size-3 transition-transform" />
+              </summary>
+              <ul className="my-1 ml-5 space-y-1 border-l border-white/10 pl-3">
                 {group.items
                   .filter(
                     (item) =>
@@ -156,13 +173,13 @@ function Sidebar({
                               : undefined
                           }
                           className={
-                            "block rounded-lg px-3 py-2 text-sm " +
+                            "block rounded-md px-3 py-2.5 text-xs transition-colors " +
                             (pathname.startsWith(activeRoutes[item])
-                              ? "bg-white/10 text-white"
-                              : "text-white/80 hover:bg-white/5")
+                              ? "bg-white/10 font-medium text-[#e8d3a6]"
+                              : "text-[#aaa89e] hover:bg-white/5 hover:text-white")
                           }
                         >
-                          {item}
+                          <T>{item}</T>
                         </Link>
                       ) : (
                         <span
@@ -170,18 +187,25 @@ function Sidebar({
                           title="Available in a future phase"
                           className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-white/40"
                         >
-                          {item}
-                          <span className="text-[9px] uppercase">Soon</span>
+                          <T>{item}</T>
+                          <span className="text-[9px] uppercase">
+                            <T>{"Soon"}</T>
+                          </span>
                         </span>
                       )}
                     </li>
                   ))}
               </ul>
-            </div>
+            </details>
           ))}
       </nav>
-      <div className="border-t border-white/10 px-6 py-5 text-xs text-white/45">
-        Staff workspace
+      <div className="mx-4 mb-5 rounded-lg border border-white/10 p-4">
+        <p className="premium-eyebrow text-[#bca575]">
+          <T>{"Hotel workspace"}</T>
+        </p>
+        <p className="mt-2 text-xs text-[#aaa89e]">
+          <T>{"Thoughtful hospitality, every day."}</T>
+        </p>
       </div>
     </div>
   );
@@ -195,6 +219,13 @@ export function DashboardShell({
 }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const currentPage =
+    Object.entries(activeRoutes).find(
+      ([, href]) => pathname === href || pathname.startsWith(href + "/"),
+    )?.[0] ?? "Overview";
+  const currentGroup =
+    navigation.find((group) => group.items.includes(currentPage))?.title ??
+    "Workspace";
   if (pathname.startsWith("/folios/") && pathname.endsWith("/print"))
     return <main id="main-content">{children}</main>;
   return (
@@ -203,13 +234,13 @@ export function DashboardShell({
         href="#main-content"
         className="sr-only z-50 rounded bg-white p-3 focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
       >
-        Skip to content
+        <T>{"Skip to content"}</T>
       </a>
-      <aside className="fixed inset-y-0 left-0 hidden w-64 lg:block">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 lg:block">
         <Sidebar role={profile.role} />
       </aside>
-      <div className="lg:pl-64">
-        <header className="sticky top-0 z-20 flex h-20 items-center justify-between gap-3 border-b bg-background/95 px-5 backdrop-blur md:px-8">
+      <div className="min-w-0 lg:pl-60">
+        <header className="sticky top-0 z-20 flex h-[72px] items-center justify-between gap-3 border-b bg-background/95 px-5 backdrop-blur md:px-9">
           <div className="flex items-center gap-3">
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild>
@@ -227,7 +258,9 @@ export function DashboardShell({
                 aria-describedby={undefined}
                 className="w-72 border-0 bg-sidebar p-0 text-sidebar-foreground"
               >
-                <SheetTitle className="sr-only">Hotel navigation</SheetTitle>
+                <SheetTitle className="sr-only">
+                  <T>{"Hotel navigation"}</T>
+                </SheetTitle>
                 <Sidebar
                   role={profile.role}
                   onNavigate={() => setOpen(false)}
@@ -235,29 +268,26 @@ export function DashboardShell({
               </SheetContent>
             </Sheet>
             <p className="flex items-center gap-3 text-sm text-muted-foreground">
-              <span className="hidden sm:inline">Workspace</span>
+              <span className="hidden sm:inline">
+                <T>{currentGroup}</T>
+              </span>
               <ChevronRight className="hidden size-3 sm:block" />
               <span className="font-medium text-foreground">
-                {pathname.startsWith("/rooms")
-                  ? "Rooms"
-                  : pathname.startsWith("/guests")
-                    ? "Guests"
-                    : pathname.startsWith("/reservations")
-                      ? "Reservations"
-                      : "Dashboard"}
+                <T>{currentPage}</T>
               </span>
             </p>
           </div>
           <div className="flex items-center gap-4">
+            <LanguageSwitcher />
             <div className="hidden text-right sm:block">
               <p className="text-sm font-medium">{profile.full_name}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {profile.role.replaceAll("_", " ")}
+                <T>{profile.role.replaceAll("_", " ")}</T>
               </p>
             </div>
             <span
               aria-hidden="true"
-              className="flex size-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary"
+              className="flex size-9 items-center justify-center rounded-full border border-primary/20 bg-secondary font-serif text-lg text-primary"
             >
               {profile.full_name.charAt(0).toUpperCase()}
             </span>
@@ -273,7 +303,10 @@ export function DashboardShell({
             </form>
           </div>
         </header>
-        <main id="main-content" className="mx-auto max-w-[1600px] p-5 md:p-8">
+        <main
+          id="main-content"
+          className="workspace-content mx-auto max-w-[1600px] min-w-0 p-5 md:px-9 md:py-8"
+        >
           {children}
         </main>
       </div>

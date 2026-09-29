@@ -1,4 +1,7 @@
 "use client";
+// localized-ui
+import { T, LocalizedInput } from "@/components/i18n/language-provider";
+
 import { useRef, useState, useTransition } from "react";
 import { useRouter, unstable_rethrow } from "next/navigation";
 import { recordPayment } from "@/app/(dashboard)/folios/actions";
@@ -56,15 +59,21 @@ export function PaymentForm({
         });
       }}
     >
-      <h2 className="text-xl font-semibold">Record received payment</h2>
+      <h2 className="text-xl font-semibold">
+        <T>{"Record received payment"}</T>
+      </h2>
       <p className="text-sm text-muted-foreground">
-        Record money already received. This form does not charge a card or send
-        a bank transfer.
+        <T>
+          {
+            "Record money already received. This form does not charge a card or send a bank transfer."
+          }
+        </T>
       </p>
       <fieldset disabled={pending} className="space-y-3">
         <label className="block text-sm">
-          Amount ({currency})
-          <input
+          <T>{"Amount ("}</T>
+          {currency})
+          <LocalizedInput
             name="amount"
             type="number"
             min="0.01"
@@ -75,42 +84,48 @@ export function PaymentForm({
           />
         </label>
         <label className="block text-sm">
-          Method
+          <T>{"Method"}</T>
           <select
             name="method"
             className="mt-1 h-10 w-full rounded-md border px-3"
           >
-            {paymentMethods.map((m) => (
-              <option key={m} value={m}>
-                {m.replaceAll("_", " ")}
-              </option>
-            ))}
+            <T>
+              {paymentMethods.map((m) => (
+                <option key={m} value={m}>
+                  {m.replaceAll("_", " ")}
+                </option>
+              ))}
+            </T>
           </select>
         </label>
         <label className="block text-sm">
-          Transaction reference (required for non-cash)
-          <input
+          <T>{"Transaction reference (required for non-cash)"}</T>
+          <LocalizedInput
             name="reference"
             maxLength={150}
             className="mt-1 h-10 w-full rounded-md border px-3"
           />
         </label>
         <label className="flex items-start gap-2 text-sm">
-          <input type="checkbox" required className="mt-1" />I verified this
-          payment was received and has not already been recorded.
+          <LocalizedInput type="checkbox" required className="mt-1" />
+          <T>
+            {
+              "I verified this payment was received and has not already been recorded."
+            }
+          </T>
         </label>
         <Button disabled={pending || balance <= 0}>
-          {pending ? "Recording..." : "Record payment"}
+          <T>{pending ? "Recording..." : "Record payment"}</T>
         </Button>
       </fieldset>
       {error && (
         <p role="alert" className="text-sm text-destructive">
-          {error}
+          <T>{error}</T>
         </p>
       )}
       {success && (
         <p role="status" className="text-sm text-emerald-800">
-          Payment recorded.
+          <T>{"Payment recorded."}</T>
         </p>
       )}
     </form>

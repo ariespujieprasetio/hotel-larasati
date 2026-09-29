@@ -1,4 +1,7 @@
 "use client";
+// localized-ui
+import { T } from "@/components/i18n/language-provider";
+
 import { useState } from "react";
 import { unstable_rethrow } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -32,7 +35,9 @@ export function LoginForm({ configured }: { configured: boolean }) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
       <div className="space-y-2">
-        <Label htmlFor="email">Email address</Label>
+        <Label htmlFor="email">
+          <T>{"Email address"}</T>
+        </Label>
         <Input
           id="email"
           type="email"
@@ -42,14 +47,18 @@ export function LoginForm({ configured }: { configured: boolean }) {
           aria-describedby={errors.email ? "email-error" : undefined}
           {...register("email")}
         />
-        {errors.email && (
-          <p id="email-error" className="text-sm text-destructive">
-            {errors.email.message}
-          </p>
-        )}
+        <T>
+          {errors.email && (
+            <p id="email-error" className="text-sm text-destructive">
+              {errors.email.message}
+            </p>
+          )}
+        </T>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">
+          <T>{"Password"}</T>
+        </Label>
         <Input
           id="password"
           type="password"
@@ -58,18 +67,20 @@ export function LoginForm({ configured }: { configured: boolean }) {
           aria-describedby={errors.password ? "password-error" : undefined}
           {...register("password")}
         />
-        {errors.password && (
-          <p id="password-error" className="text-sm text-destructive">
-            {errors.password.message}
-          </p>
-        )}
+        <T>
+          {errors.password && (
+            <p id="password-error" className="text-sm text-destructive">
+              {errors.password.message}
+            </p>
+          )}
+        </T>
       </div>
       {error && (
         <p
           role="alert"
           className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive"
         >
-          {error}
+          <T>{error}</T>
         </p>
       )}
       <Button
@@ -80,11 +91,11 @@ export function LoginForm({ configured }: { configured: boolean }) {
         {isSubmitting ? (
           <>
             <LoaderCircle className="animate-spin" />
-            Signing in…
+            <T>{"Signing in…"}</T>
           </>
         ) : (
           <>
-            Sign in
+            <T>{"Sign in"}</T>
             <ArrowRight />
           </>
         )}

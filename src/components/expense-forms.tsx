@@ -1,4 +1,11 @@
 "use client";
+// localized-ui
+import {
+  T,
+  LocalizedInput,
+  LocalizedTextarea,
+} from "@/components/i18n/language-provider";
+
 import { useRef, useState, useTransition } from "react";
 import { useRouter, unstable_rethrow } from "next/navigation";
 import { recordExpense, voidExpense } from "@/app/(dashboard)/expenses/actions";
@@ -48,11 +55,13 @@ export function ExpenseForm({
         });
       }}
     >
-      <h2 className="text-xl font-semibold">Record paid expense</h2>
+      <h2 className="text-xl font-semibold">
+        <T>{"Record paid expense"}</T>
+      </h2>
       <fieldset disabled={pending} className="grid gap-4 sm:grid-cols-2">
         <label>
-          Payment date
-          <input
+          <T>{"Payment date"}</T>
+          <LocalizedInput
             name="paid_on"
             type="date"
             min="1900-01-01"
@@ -63,7 +72,7 @@ export function ExpenseForm({
           />
         </label>
         <label>
-          Category
+          <T>{"Category"}</T>
           <select
             name="category"
             className="mt-1 block w-full rounded border p-2"
@@ -74,8 +83,8 @@ export function ExpenseForm({
           </select>
         </label>
         <label>
-          Amount
-          <input
+          <T>{"Amount"}</T>
+          <LocalizedInput
             name="amount"
             type="number"
             step="0.01"
@@ -86,8 +95,8 @@ export function ExpenseForm({
           />
         </label>
         <label>
-          Currency
-          <input
+          <T>{"Currency"}</T>
+          <LocalizedInput
             name="currency"
             defaultValue={currency}
             pattern="[A-Za-z]{3}"
@@ -97,7 +106,7 @@ export function ExpenseForm({
           />
         </label>
         <label>
-          Method
+          <T>{"Method"}</T>
           <select
             name="method"
             className="mt-1 block w-full rounded border p-2"
@@ -108,16 +117,16 @@ export function ExpenseForm({
           </select>
         </label>
         <label>
-          Reference (required for non-cash)
-          <input
+          <T>{"Reference (required for non-cash)"}</T>
+          <LocalizedInput
             name="reference"
             maxLength={150}
             className="mt-1 block w-full rounded border p-2"
           />
         </label>
         <label className="sm:col-span-2">
-          Description
-          <textarea
+          <T>{"Description"}</T>
+          <LocalizedTextarea
             name="description"
             required
             minLength={3}
@@ -126,11 +135,15 @@ export function ExpenseForm({
           />
         </label>
         <label className="sm:col-span-2">
-          <input type="checkbox" required /> I verified this money was paid and
-          has not already been recorded.
+          <LocalizedInput type="checkbox" required />
+          <T>
+            {
+              " I verified this money was paid and has not already been recorded."
+            }
+          </T>
         </label>
         <Button disabled={pending}>
-          {pending ? "Saving..." : "Record expense"}
+          <T>{pending ? "Saving..." : "Record expense"}</T>
         </Button>
       </fieldset>
       {message && <p role="status">{message}</p>}
@@ -160,8 +173,8 @@ export function VoidExpenseForm({ id }: { id: string }) {
       }}
     >
       <label>
-        Reason for correcting this record
-        <input
+        <T>{"Reason for correcting this record"}</T>
+        <LocalizedInput
           name="reason"
           minLength={3}
           maxLength={500}
@@ -171,9 +184,13 @@ export function VoidExpenseForm({ id }: { id: string }) {
         />
       </label>
       <Button variant="outline" disabled={pending}>
-        Cancel incorrect expense
+        <T>{"Cancel incorrect expense"}</T>
       </Button>
-      {error && <p role="alert">{error}</p>}
+      {error && (
+        <p role="alert">
+          <T>{error}</T>
+        </p>
+      )}
     </form>
   );
 }

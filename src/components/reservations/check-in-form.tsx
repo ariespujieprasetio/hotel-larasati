@@ -1,4 +1,7 @@
 "use client";
+// localized-ui
+import { T, LocalizedInput } from "@/components/i18n/language-provider";
+
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { checkIn } from "@/app/(dashboard)/check-in/actions";
@@ -30,22 +33,35 @@ export function CheckInForm({
         });
       }}
     >
-      <h2 className="text-lg font-semibold">Guest arrival</h2>
+      <h2 className="text-lg font-semibold">
+        <T>{"Guest arrival"}</T>
+      </h2>
       <p className="text-sm text-muted-foreground">
-        Confirm the guest has arrived and room {roomNumber} is ready. Check-in
-        records the arrival time and marks the room occupied.
+        <T>{"Confirm the guest has arrived and room "}</T>
+        {roomNumber}
+        <T>
+          {
+            " is ready. Check-in records the arrival time and marks the room occupied."
+          }
+        </T>
       </p>
       <label className="flex items-start gap-2 text-sm">
-        <input type="checkbox" required disabled={pending} className="mt-1" />{" "}
-        Guest details and room assignment have been verified.
+        <LocalizedInput
+          type="checkbox"
+          required
+          disabled={pending}
+          className="mt-1"
+        />
+        <T> </T>
+        <T>{"Guest details and room assignment have been verified."}</T>
       </label>
       {error && (
         <p role="alert" className="text-sm text-destructive">
-          {error}
+          <T>{error}</T>
         </p>
       )}
       <Button disabled={pending}>
-        {pending ? "Checking in..." : "Check in guest"}
+        <T>{pending ? "Checking in..." : "Check in guest"}</T>
       </Button>
     </form>
   );

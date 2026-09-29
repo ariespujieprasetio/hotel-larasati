@@ -1,3 +1,5 @@
+// localized-ui
+import { T } from "@/components/i18n/language-provider";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -45,20 +47,23 @@ export default async function MaintenanceDetail({
   return (
     <div className="space-y-5">
       <Link href="/maintenance" className="underline">
-        Back to maintenance
+        <T>{"Back to maintenance"}</T>
       </Link>
       <h1 className="text-3xl font-semibold">{t.title}</h1>
       <p>
-        Room {room.data.room_number} &middot; {t.priority} &middot; {t.status}
+        <T>{"Room "}</T>
+        {room.data.room_number} &middot; {t.priority} &middot; <T>{t.status}</T>
       </p>
       <p className="whitespace-pre-wrap break-words">{t.description}</p>
       <p>
-        Assigned to:{" "}
+        <T>{"Assigned to:"}</T>
+        <T> </T>
         {staff.data.find((s) => s.id === t.assigned_to)?.full_name ??
           (t.assigned_to ? "Inactive staff" : "Unassigned")}
       </p>
       <Link className="underline" href={"/rooms/" + t.room_id}>
-        Review room readiness ({room.data.status})
+        <T>{"Review room readiness ("}</T>
+        {room.data.status})
       </Link>
       {!t.closed_at &&
         (management ||
@@ -74,20 +79,30 @@ export default async function MaintenanceDetail({
             management={management}
           />
         )}
-      <h2 className="text-xl font-semibold">Task history</h2>
+      <h2 className="text-xl font-semibold">
+        <T>{"Task history"}</T>
+      </h2>
       {history.data.map((e) => (
         <div key={e.id} className="rounded border p-4">
           <strong>{e.action}</strong>
           <p className="whitespace-pre-wrap break-words">{e.note}</p>
           <p className="text-xs">
-            {billingDate(e.created_at)} WIB &middot; Staff: {e.user_id}
+            {billingDate(e.created_at)}
+            <T>{" WIB \u00b7 Staff: "}</T>
+            {e.user_id}
           </p>
         </div>
       ))}
       <nav className="flex gap-4">
-        {page > 1 && <Link href={"?page=" + (page - 1)}>Previous history</Link>}
+        {page > 1 && (
+          <Link href={"?page=" + (page - 1)}>
+            <T>{"Previous history"}</T>
+          </Link>
+        )}
         {page * 20 < (history.count ?? 0) && (
-          <Link href={"?page=" + (page + 1)}>Next history</Link>
+          <Link href={"?page=" + (page + 1)}>
+            <T>{"Next history"}</T>
+          </Link>
         )}
       </nav>
     </div>

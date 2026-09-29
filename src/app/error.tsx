@@ -1,4 +1,7 @@
 "use client";
+// localized-ui
+import { T } from "@/components/i18n/language-provider";
+
 import { Button } from "@/components/ui/button";
 export default function ErrorPage({
   reset,
@@ -8,12 +11,19 @@ export default function ErrorPage({
 }) {
   return (
     <main className="mx-auto max-w-lg p-8">
-      <h1 className="text-2xl font-semibold">We couldn’t load this page</h1>
+      <h1 className="text-2xl font-semibold">
+        <T>{"We couldn’t load this page"}</T>
+      </h1>
       <p className="my-4 text-muted-foreground">
-        Please try again. If the problem continues, ask your administrator to
-        check the connection and database setup.
+        <T>
+          {
+            "Please try again. If the problem continues, ask your administrator to check the connection and database setup."
+          }
+        </T>
       </p>
-      <Button onClick={reset}>Try again</Button>
+      <Button onClick={reset}>
+        <T>{"Try again"}</T>
+      </Button>
     </main>
   );
 }

@@ -1,3 +1,5 @@
+// localized-ui
+import { T } from "@/components/i18n/language-provider";
 import Link from "next/link";
 import { requireRole } from "@/lib/services/auth";
 import { roomReadRoles } from "@/lib/rooms";
@@ -34,11 +36,15 @@ export default async function MaintenancePage({
     throw new Error("Maintenance could not be loaded. Apply the migration.");
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-semibold">Maintenance</h1>
+      <h1 className="text-3xl font-semibold">
+        <T>{"Maintenance"}</T>
+      </h1>
       <p>
-        Report and track repairs. Reports do not change room availability.
-        Management blocks or releases rooms separately in Rooms after reviewing
-        reservations and readiness.
+        <T>
+          {
+            "Report and track repairs. Reports do not change room availability. Management blocks or releases rooms separately in Rooms after reviewing reservations and readiness."
+          }
+        </T>
       </p>
       <MaintenanceReport />
       <form className="flex gap-3">
@@ -55,37 +61,47 @@ export default async function MaintenancePage({
             "COMPLETED",
             "CANCELLED",
           ].map((s) => (
-            <option key={s}>{s}</option>
+            <option key={s}>
+              <T>{s}</T>
+            </option>
           ))}
         </select>
-        <button className="rounded border px-4">Filter</button>
+        <button className="rounded border px-4">
+          <T>{"Filter"}</T>
+        </button>
       </form>
       <div className="divide-y rounded-xl border">
         {!data?.length && (
-          <p className="p-5">No maintenance tasks match this filter.</p>
+          <p className="p-5">
+            <T>{"No maintenance tasks match this filter."}</T>
+          </p>
         )}
-        {data?.map((t) => (
-          <Link
-            key={t.id}
-            href={"/maintenance/" + t.id}
-            className="block space-y-2 p-5"
-          >
-            <strong>{t.title}</strong>
-            <p>
-              {t.priority} &middot; {t.status.replaceAll("_", " ")} &middot;{" "}
-              {billingDate(t.created_at)} WIB
-            </p>
-          </Link>
-        ))}
+        <T>
+          {data?.map((t) => (
+            <Link
+              key={t.id}
+              href={"/maintenance/" + t.id}
+              className="block space-y-2 p-5"
+            >
+              <strong>{t.title}</strong>
+              <p>
+                {t.priority} &middot; {t.status.replaceAll("_", " ")} &middot;{" "}
+                {billingDate(t.created_at)} WIB
+              </p>
+            </Link>
+          ))}
+        </T>
       </div>
       <nav className="flex gap-4">
         {page > 1 && (
           <Link href={"?status=" + status + "&page=" + (page - 1)}>
-            Previous
+            <T>{"Previous"}</T>
           </Link>
         )}
         {page * 20 < (count ?? 0) && (
-          <Link href={"?status=" + status + "&page=" + (page + 1)}>Next</Link>
+          <Link href={"?status=" + status + "&page=" + (page + 1)}>
+            <T>{"Next"}</T>
+          </Link>
         )}
       </nav>
     </div>

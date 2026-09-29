@@ -1,3 +1,5 @@
+// localized-ui
+import { T } from "@/components/i18n/language-provider";
 import { requireStaff } from "@/lib/services/auth";
 import { roomReadRoles } from "@/lib/rooms";
 export default async function RoomsLayout({
@@ -9,9 +11,11 @@ export default async function RoomsLayout({
   if (!roomReadRoles.includes(profile.role))
     return (
       <div role="alert" className="rounded-xl border bg-card p-6">
-        <h1 className="text-xl font-semibold">Access restricted</h1>
+        <h1 className="text-xl font-semibold">
+          <T>{"Access restricted"}</T>
+        </h1>
         <p className="mt-2">
-          Your role does not have access to room operations.
+          <T>{"Your role does not have access to room operations."}</T>
         </p>
       </div>
     );

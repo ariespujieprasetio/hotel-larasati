@@ -1,4 +1,7 @@
 "use client";
+// localized-ui
+import { T } from "@/components/i18n/language-provider";
+
 import { useState } from "react";
 import { useRouter, unstable_rethrow } from "next/navigation";
 import { changeRoomStatus } from "@/app/(dashboard)/rooms/actions";
@@ -15,7 +18,7 @@ export function StatusForm({ room, role }: { room: Room; role: Role }) {
   if (!room.is_active || !options.length)
     return (
       <p className="text-sm text-muted-foreground">
-        No manual status changes available for this room and role.
+        <T>{"No manual status changes available for this room and role."}</T>
       </p>
     );
   return (
@@ -57,22 +60,22 @@ export function StatusForm({ room, role }: { room: Room; role: Role }) {
       }}
     >
       <label htmlFor="status" className="text-sm font-medium">
-        Change status
+        <T>{"Change status"}</T>
       </label>
       <select name="status" id="status" className={controlClass}>
         {options.map((s) => (
           <option key={s} value={s}>
-            {statusLabel(s)}
+            <T>{statusLabel(s)}</T>
           </option>
         ))}
       </select>
       {error && (
         <p role="alert" className="text-sm text-destructive">
-          {error}
+          <T>{error}</T>
         </p>
       )}
       <Button disabled={pending}>
-        {pending ? "Updating…" : "Update status"}
+        <T>{pending ? "Updating…" : "Update status"}</T>
       </Button>
     </form>
   );

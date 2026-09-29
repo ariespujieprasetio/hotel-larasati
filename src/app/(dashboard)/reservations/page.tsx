@@ -1,3 +1,5 @@
+// localized-ui
+import { T, LocalizedInput } from "@/components/i18n/language-provider";
 import Link from "next/link";
 import {
   listReservations,
@@ -22,38 +24,50 @@ export default async function ReservationList({
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold">Reservations</h1>
+          <h1 className="text-3xl font-semibold">
+            <T>{"Reservations"}</T>
+          </h1>
           <p className="mt-2 text-muted-foreground">
-            Bookings, room assignments and scheduled arrivals.
+            <T>{"Bookings, room assignments and scheduled arrivals."}</T>
           </p>
         </div>
         <Button asChild>
-          <Link href="/reservations/new">New reservation</Link>
+          <Link href="/reservations/new">
+            <T>{"New reservation"}</T>
+          </Link>
         </Button>
       </header>
       <form className="grid gap-3 rounded-xl border bg-card p-4 sm:grid-cols-2 xl:grid-cols-3">
         <label className="text-sm">
-          Reservation number
-          <input name="q" defaultValue={search.q} className={control} />
+          <T>{"Reservation number"}</T>
+          <LocalizedInput
+            name="q"
+            defaultValue={search.q}
+            className={control}
+          />
         </label>
         <label className="text-sm">
-          Status
+          <T>{"Status"}</T>
           <select
             name="status"
             defaultValue={search.status}
             className={control}
           >
-            <option value="">All statuses</option>
-            {reservationStatuses.map((s) => (
-              <option key={s} value={s}>
-                {s.replaceAll("_", " ")}
-              </option>
-            ))}
+            <option value="">
+              <T>{"All statuses"}</T>
+            </option>
+            <T>
+              {reservationStatuses.map((s) => (
+                <option key={s} value={s}>
+                  {s.replaceAll("_", " ")}
+                </option>
+              ))}
+            </T>
           </select>
         </label>
         <label className="text-sm">
-          Arrival from
-          <input
+          <T>{"Arrival from"}</T>
+          <LocalizedInput
             type="date"
             name="from"
             defaultValue={search.from}
@@ -61,8 +75,8 @@ export default async function ReservationList({
           />
         </label>
         <label className="text-sm">
-          Arrival through
-          <input
+          <T>{"Arrival through"}</T>
+          <LocalizedInput
             type="date"
             name="to"
             defaultValue={search.to}
@@ -70,26 +84,40 @@ export default async function ReservationList({
           />
         </label>
         <label className="text-sm">
-          Sort by
+          <T>{"Sort by"}</T>
           <select name="sort" defaultValue={search.sort} className={control}>
-            <option value="check_in_date">Arrival date</option>
-            <option value="created_at">Newest booking</option>
+            <option value="check_in_date">
+              <T>{"Arrival date"}</T>
+            </option>
+            <option value="created_at">
+              <T>{"Newest booking"}</T>
+            </option>
           </select>
         </label>
         <div className="flex items-end gap-2">
-          <Button>Apply filters</Button>
+          <Button>
+            <T>{"Apply filters"}</T>
+          </Button>
           <Button variant="ghost" asChild>
-            <Link href="/reservations">Reset</Link>
+            <Link href="/reservations">
+              <T>{"Reset"}</T>
+            </Link>
           </Button>
         </div>
       </form>
       <p className="text-sm text-muted-foreground">
-        {count} reservations · Page {search.page} of {pages}
+        {count}
+        <T>{" reservations · Page "}</T>
+        {search.page}
+        <T>{" of "}</T>
+        {pages}
       </p>
       {reservations.length ? (
         <div className="overflow-x-auto rounded-xl border bg-card">
           <table className="w-full text-left text-sm">
-            <caption className="sr-only">Reservation search results</caption>
+            <caption className="sr-only">
+              <T>{"Reservation search results"}</T>
+            </caption>
             <thead className="bg-muted">
               <tr>
                 {[
@@ -102,7 +130,7 @@ export default async function ReservationList({
                   "Total",
                 ].map((h) => (
                   <th className="p-4" scope="col" key={h}>
-                    {h}
+                    <T>{h}</T>
                   </th>
                 ))}
               </tr>
@@ -138,21 +166,27 @@ export default async function ReservationList({
         </div>
       ) : (
         <section className="rounded-xl border bg-card p-10 text-center">
-          <h2 className="text-lg font-semibold">No reservations found</h2>
+          <h2 className="text-lg font-semibold">
+            <T>{"No reservations found"}</T>
+          </h2>
           <p className="mt-2 text-muted-foreground">
-            Create a booking or adjust the filters.
+            <T>{"Create a booking or adjust the filters."}</T>
           </p>
         </section>
       )}
       <nav aria-label="Reservation pagination" className="flex gap-3">
         {search.page > 1 && (
           <Button variant="outline" asChild>
-            <Link href={url(search.page - 1)}>Previous</Link>
+            <Link href={url(search.page - 1)}>
+              <T>{"Previous"}</T>
+            </Link>
           </Button>
         )}
         {search.page < pages && (
           <Button variant="outline" asChild>
-            <Link href={url(search.page + 1)}>Next</Link>
+            <Link href={url(search.page + 1)}>
+              <T>{"Next"}</T>
+            </Link>
           </Button>
         )}
       </nav>

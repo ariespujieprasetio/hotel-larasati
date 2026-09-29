@@ -1,4 +1,7 @@
+// localized-ui
+import { T, LocalizedInput } from "@/components/i18n/language-provider";
 import Link from "next/link";
+import { BedDouble, ArrowUpRight, Plus } from "lucide-react";
 import { requireStaff } from "@/lib/services/auth";
 import { getRoomTypes, listRooms, parseRoomSearch } from "@/lib/services/rooms";
 import { roomManageRoles, roomStatuses, statusLabel } from "@/lib/rooms";
@@ -27,27 +30,37 @@ export default async function RoomsPage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold">Rooms</h1>
+          <h1 className="text-3xl font-semibold">
+            <T>{"Rooms"}</T>
+          </h1>
           <p className="mt-2 text-muted-foreground">
-            Room inventory and current readiness. Date-based availability comes
-            with reservations.
+            <T>
+              {
+                "Every room, ready for its next chapter. Manage inventory and readiness."
+              }
+            </T>
           </p>
         </div>
         <div className="flex gap-3">
           <Button asChild variant="outline">
-            <Link href="/rooms/types">Room types</Link>
+            <Link href="/rooms/types">
+              <T>{"Room types"}</T>
+            </Link>
           </Button>
           {roomManageRoles.includes(profile.role) && (
             <Button asChild>
-              <Link href="/rooms/new">Add room</Link>
+              <Link href="/rooms/new">
+                <Plus className="size-4" />
+                <T>{"Add room"}</T>
+              </Link>
             </Button>
           )}
         </div>
       </div>
       <form className="grid gap-3 rounded-xl border bg-card p-4 sm:grid-cols-2 xl:grid-cols-4">
         <label className="space-y-1 text-sm">
-          Room number
-          <input
+          <T>{"Room number"}</T>
+          <LocalizedInput
             className={controlClass}
             name="q"
             defaultValue={search.q}
@@ -55,28 +68,32 @@ export default async function RoomsPage({
           />
         </label>
         <label className="space-y-1 text-sm">
-          Status
+          <T>{"Status"}</T>
           <select
             className={controlClass}
             name="status"
             defaultValue={search.status}
           >
-            <option value="">All statuses</option>
+            <option value="">
+              <T>{"All statuses"}</T>
+            </option>
             {roomStatuses.map((s) => (
               <option key={s} value={s}>
-                {statusLabel(s)}
+                <T>{statusLabel(s)}</T>
               </option>
             ))}
           </select>
         </label>
         <label className="space-y-1 text-sm">
-          Room type
+          <T>{"Room type"}</T>
           <select
             name="type"
             className={controlClass}
             defaultValue={search.type}
           >
-            <option value="">All room types</option>
+            <option value="">
+              <T>{"All room types"}</T>
+            </option>
             {types.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.name}
@@ -85,56 +102,86 @@ export default async function RoomsPage({
           </select>
         </label>
         <label className="space-y-1 text-sm">
-          Inventory
+          <T>{"Inventory"}</T>
           <select
             name="active"
             className={controlClass}
             defaultValue={search.active}
           >
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="all">All rooms</option>
+            <option value="active">
+              <T>{"Active"}</T>
+            </option>
+            <option value="inactive">
+              <T>{"Inactive"}</T>
+            </option>
+            <option value="all">
+              <T>{"All rooms"}</T>
+            </option>
           </select>
         </label>
         <label className="space-y-1 text-sm">
-          Sort by
+          <T>{"Sort by"}</T>
           <select
             name="sort"
             className={controlClass}
             defaultValue={search.sort}
           >
-            <option value="room_number">Room number</option>
-            <option value="floor">Floor</option>
-            <option value="status">Status</option>
-            <option value="updated_at">Recently updated</option>
+            <option value="room_number">
+              <T>{"Room number"}</T>
+            </option>
+            <option value="floor">
+              <T>{"Floor"}</T>
+            </option>
+            <option value="status">
+              <T>{"Status"}</T>
+            </option>
+            <option value="updated_at">
+              <T>{"Recently updated"}</T>
+            </option>
           </select>
         </label>
         <label className="space-y-1 text-sm">
-          View
+          <T>{"View"}</T>
           <select
             name="view"
             className={controlClass}
             defaultValue={search.view}
           >
-            <option value="board">Room board</option>
-            <option value="table">Table</option>
+            <option value="board">
+              <T>{"Room board"}</T>
+            </option>
+            <option value="table">
+              <T>{"Table"}</T>
+            </option>
           </select>
         </label>
         <div className="flex items-end gap-2">
-          <Button type="submit">Apply filters</Button>
+          <Button type="submit">
+            <T>{"Apply filters"}</T>
+          </Button>
           <Button asChild variant="ghost">
-            <Link href="/rooms">Reset</Link>
+            <Link href="/rooms">
+              <T>{"Reset"}</T>
+            </Link>
           </Button>
         </div>
       </form>
       <p className="text-sm text-muted-foreground">
-        {count} matching rooms · Page {search.page} of {pageCount}
+        {count}
+        <T>{" matching rooms · Page "}</T>
+        {search.page}
+        <T>{" of "}</T>
+        {pageCount}
       </p>
       {!rooms.length ? (
         <div className="rounded-xl border bg-card p-10 text-center">
-          <h2 className="text-lg font-semibold">No rooms found</h2>
+          <h2 className="text-lg font-semibold">
+            <T>{"No rooms found"}</T>
+          </h2>
           <p className="mt-2 text-muted-foreground">
-            Adjust your filters, or add a room type and your first room.
+            <T>
+              {"Adjust your filters, or add a room type and your first room."}
+            </T>
           </p>
         </div>
       ) : search.view === "board" ? (
@@ -143,18 +190,24 @@ export default async function RoomsPage({
             <Link
               href={"/rooms/" + room.id}
               key={room.id}
-              className="space-y-4 rounded-xl border bg-card p-5 transition hover:border-primary focus-visible:outline-2 focus-visible:outline-ring"
+              className="group space-y-4 rounded-xl border bg-card p-5 transition hover:border-primary/40 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-ring"
             >
               <div className="flex items-center justify-between gap-2">
-                <h2 className="text-2xl font-semibold">{room.room_number}</h2>
+                <span className="flex size-10 items-center justify-center rounded-lg bg-secondary/60 text-primary">
+                  <BedDouble className="size-5" />
+                </span>
+                <ArrowUpRight className="ml-auto size-4 text-muted-foreground/50 group-hover:text-primary" />
                 {!room.is_active && (
                   <span className="text-xs text-muted-foreground">
-                    Inactive
+                    <T>{"Inactive"}</T>
                   </span>
                 )}
               </div>
+              <h2 className="font-serif text-3xl">{room.room_number}</h2>
               <p className="text-sm text-muted-foreground">
-                {typeName(room.room_type_id)} · Floor {room.floor}
+                {typeName(room.room_type_id)}
+                <T>{" · Floor "}</T>
+                {room.floor}
               </p>
               <StatusBadge status={room.status} />
             </Link>
@@ -164,13 +217,13 @@ export default async function RoomsPage({
         <div className="overflow-x-auto rounded-xl border bg-card">
           <table className="w-full text-left text-sm">
             <caption className="sr-only">
-              Rooms matching the selected filters
+              <T>{"Rooms matching the selected filters"}</T>
             </caption>
             <thead className="bg-muted">
               <tr>
                 {["Room", "Type", "Floor", "Status", "Inventory"].map((h) => (
                   <th scope="col" className="p-4" key={h}>
-                    {h}
+                    <T>{h}</T>
                   </th>
                 ))}
               </tr>
@@ -189,7 +242,7 @@ export default async function RoomsPage({
                     <StatusBadge status={room.status} />
                   </td>
                   <td className="p-4">
-                    {room.is_active ? "Active" : "Inactive"}
+                    <T>{room.is_active ? "Active" : "Inactive"}</T>
                   </td>
                 </tr>
               ))}
@@ -200,12 +253,16 @@ export default async function RoomsPage({
       <nav aria-label="Room pagination" className="flex gap-3">
         {search.page > 1 && (
           <Button variant="outline" asChild>
-            <Link href={href(search.page - 1)}>Previous</Link>
+            <Link href={href(search.page - 1)}>
+              <T>{"Previous"}</T>
+            </Link>
           </Button>
         )}
         {search.page < pageCount && (
           <Button variant="outline" asChild>
-            <Link href={href(search.page + 1)}>Next</Link>
+            <Link href={href(search.page + 1)}>
+              <T>{"Next"}</T>
+            </Link>
           </Button>
         )}
       </nav>

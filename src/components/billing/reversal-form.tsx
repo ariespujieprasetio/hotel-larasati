@@ -1,4 +1,11 @@
 "use client";
+// localized-ui
+import {
+  T,
+  LocalizedTextarea,
+  LocalizedInput,
+} from "@/components/i18n/language-provider";
+
 import { useState, useTransition } from "react";
 import { useRouter, unstable_rethrow } from "next/navigation";
 import { reversePayment } from "@/app/(dashboard)/folios/actions";
@@ -10,7 +17,7 @@ export function ReversalForm({ paymentId }: { paymentId: string }) {
   return (
     <details className="mt-3">
       <summary className="cursor-pointer text-sm underline">
-        Reverse incorrect entry
+        <T>{"Reverse incorrect entry"}</T>
       </summary>
       <form
         className="mt-3 space-y-3"
@@ -31,12 +38,15 @@ export function ReversalForm({ paymentId }: { paymentId: string }) {
         }}
       >
         <p className="text-sm text-muted-foreground">
-          Corrects the recorded bill balance. No money is refunded or
-          transferred.
+          <T>
+            {
+              "Corrects the recorded bill balance. No money is refunded or transferred."
+            }
+          </T>
         </p>
         <label className="block text-sm">
-          Reason
-          <textarea
+          <T>{"Reason"}</T>
+          <LocalizedTextarea
             name="reason"
             minLength={3}
             maxLength={500}
@@ -46,16 +56,16 @@ export function ReversalForm({ paymentId }: { paymentId: string }) {
           />
         </label>
         <label className="flex gap-2 text-sm">
-          <input type="checkbox" required disabled={pending} />I confirm this
-          entry was recorded incorrectly.
+          <LocalizedInput type="checkbox" required disabled={pending} />
+          <T>{"I confirm this entry was recorded incorrectly."}</T>
         </label>
         {error && (
           <p role="alert" className="text-sm text-destructive">
-            {error}
+            <T>{error}</T>
           </p>
         )}
         <Button disabled={pending} variant="outline">
-          {pending ? "Reversing..." : "Reverse entry"}
+          <T>{pending ? "Reversing..." : "Reverse entry"}</T>
         </Button>
       </form>
     </details>

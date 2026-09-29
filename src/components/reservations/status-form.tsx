@@ -1,4 +1,7 @@
 "use client";
+// localized-ui
+import { T, LocalizedTextarea } from "@/components/i18n/language-provider";
+
 import { useState } from "react";
 import { useRouter, unstable_rethrow } from "next/navigation";
 import { updateReservationStatus } from "@/app/(dashboard)/reservations/actions";
@@ -53,25 +56,33 @@ export function ReservationStatusForm({
         }
       }}
     >
-      <h2 className="text-lg font-semibold">Update booking status</h2>
+      <h2 className="text-lg font-semibold">
+        <T>{"Update booking status"}</T>
+      </h2>
       <label className="block text-sm">
-        New status
+        <T>{"New status"}</T>
         <select
           name="status"
           className="mt-1 h-10 w-full rounded-md border px-3"
         >
           {reservation.status === "PENDING" && (
-            <option value="CONFIRMED">Confirmed</option>
+            <option value="CONFIRMED">
+              <T>{"Confirmed"}</T>
+            </option>
           )}
-          <option value="CANCELLED">Cancelled</option>
+          <option value="CANCELLED">
+            <T>{"Cancelled"}</T>
+          </option>
           {reservation.check_in_date <= jakartaDate() && (
-            <option value="NO_SHOW">No-show</option>
+            <option value="NO_SHOW">
+              <T>{"No-show"}</T>
+            </option>
           )}
         </select>
       </label>
       <label className="block text-sm">
-        Reason (required for cancellation/no-show)
-        <textarea
+        <T>{"Reason (required for cancellation/no-show)"}</T>
+        <LocalizedTextarea
           name="reason"
           rows={3}
           maxLength={500}
@@ -80,11 +91,11 @@ export function ReservationStatusForm({
       </label>
       {error && (
         <p role="alert" className="text-sm text-destructive">
-          {error}
+          <T>{error}</T>
         </p>
       )}
       <Button disabled={pending}>
-        {pending ? "Updating…" : "Update status"}
+        <T>{pending ? "Updating…" : "Update status"}</T>
       </Button>
     </form>
   );

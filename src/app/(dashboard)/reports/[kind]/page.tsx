@@ -1,3 +1,5 @@
+// localized-ui
+import { T, LocalizedInput } from "@/components/i18n/language-provider";
 import { notFound } from "next/navigation";
 import { requireStaff } from "@/lib/services/auth";
 import { getOperationalReport } from "@/lib/services/operational-reports";
@@ -21,7 +23,11 @@ export default async function ReportPage({
   const k = kind as ReportKind;
   const { profile } = await requireStaff();
   if (!["OWNER", "MANAGER", "FINANCE"].includes(profile.role))
-    return <p role="alert">Your role cannot access reports.</p>;
+    return (
+      <p role="alert">
+        <T>{"Your role cannot access reports."}</T>
+      </p>
+    );
   const q = await searchParams;
   const defaults = defaultReportDates();
   const from = q.from ?? defaults.from;
@@ -31,12 +37,16 @@ export default async function ReportPage({
   const def = reportDefinitions[k];
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-semibold">{def.title}</h1>
-      <p className="max-w-4xl text-sm leading-6">{def.description}</p>
+      <h1 className="text-3xl font-semibold">
+        <T>{def.title}</T>
+      </h1>
+      <p className="max-w-4xl text-sm leading-6">
+        <T>{def.description}</T>
+      </p>
       <form className="flex flex-wrap items-end gap-3">
         <label>
-          From
-          <input
+          <T>{"From"}</T>
+          <LocalizedInput
             name="from"
             type="date"
             required
@@ -46,8 +56,8 @@ export default async function ReportPage({
           />
         </label>
         <label>
-          Through
-          <input
+          <T>{"Through"}</T>
+          <LocalizedInput
             name="to"
             type="date"
             required
@@ -57,21 +67,29 @@ export default async function ReportPage({
           />
         </label>
         <button className="rounded bg-primary px-4 py-2 text-primary-foreground">
-          Show report
+          <T>{"Show report"}</T>
         </button>
       </form>
       {!valid.success && (
         <p role="alert">
-          Choose valid dates in order, up to 366 days, ending no later than
-          today WIB.
+          <T>
+            {
+              "Choose valid dates in order, up to 366 days, ending no later than today WIB."
+            }
+          </T>
         </p>
       )}
       {report && (
         <>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm">
-              {report.from} through {report.to} &middot; Generated{" "}
-              {billingDate(report.generated_at)} WIB
+              {report.from}
+              <T>{" through "}</T>
+              {report.to}
+              <T>{" \u00b7 Generated"}</T>
+              <T> </T>
+              {billingDate(report.generated_at)}
+              <T>{" WIB"}</T>
             </p>
             <a
               className="rounded border px-4 py-2"
@@ -79,12 +97,12 @@ export default async function ReportPage({
                 "/reports/" + k + "/export?" + new URLSearchParams({ from, to })
               }
             >
-              Export CSV
+              <T>{"Export CSV"}</T>
             </a>
           </div>
           {!report.rows.length ? (
             <p className="rounded border p-5">
-              No matching activity or balances.
+              <T>{"No matching activity or balances."}</T>
             </p>
           ) : (
             <div className="overflow-x-auto rounded border">
@@ -93,7 +111,7 @@ export default async function ReportPage({
                   <tr>
                     {def.columns.map(([key, label]) => (
                       <th key={key} className="whitespace-nowrap p-3">
-                        {label}
+                        <T>{label}</T>
                       </th>
                     ))}
                   </tr>

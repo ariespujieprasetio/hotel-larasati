@@ -1,4 +1,5 @@
 import { reportDates, defaultReportDates } from "@/lib/payment-reports";
+import { translate, type Locale } from "@/lib/i18n/messages";
 export const reportKinds = ["occupancy", "revenue", "financial"] as const;
 export type ReportKind = (typeof reportKinds)[number];
 export type OperationalReport = {
@@ -62,7 +63,10 @@ export const reportDefinitions: Record<
     ],
   },
 };
-export function operationalCsv(report: OperationalReport) {
+export function operationalCsv(
+  report: OperationalReport,
+  locale: Locale = "en",
+) {
   const cols = reportDefinitions[report.kind].columns;
   const rows = [
     [
@@ -70,7 +74,7 @@ export function operationalCsv(report: OperationalReport) {
       "Through (WIB)",
       "Generated at (UTC)",
       ...cols.map((c) => c[1]),
-    ],
+    ].map((heading) => translate(locale, heading)),
     ...report.rows.map((r) => [
       report.from,
       report.to,

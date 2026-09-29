@@ -1,4 +1,11 @@
 "use client";
+// localized-ui
+import {
+  T,
+  LocalizedInput,
+  LocalizedTextarea,
+} from "@/components/i18n/language-provider";
+
 import { useRef, useState, useTransition } from "react";
 import { useRouter, unstable_rethrow } from "next/navigation";
 import {
@@ -36,15 +43,17 @@ export function MaintenanceReport() {
         });
       }}
     >
-      <h2 className="text-xl font-semibold">Report room issue</h2>
+      <h2 className="text-xl font-semibold">
+        <T>{"Report room issue"}</T>
+      </h2>
       <fieldset disabled={pending} className="grid gap-3 sm:grid-cols-2">
         {[
           { name: "room", label: "Room number", max: 12, min: 1 },
           { name: "title", label: "Issue title", max: 150, min: 3 },
         ].map((f) => (
           <label key={f.name} className="text-sm">
-            {f.label}
-            <input
+            <T>{f.label}</T>
+            <LocalizedInput
               name={f.name}
               required
               minLength={f.min}
@@ -54,7 +63,7 @@ export function MaintenanceReport() {
           </label>
         ))}
         <label className="text-sm">
-          Priority
+          <T>{"Priority"}</T>
           <select
             name="priority"
             defaultValue="NORMAL"
@@ -66,8 +75,8 @@ export function MaintenanceReport() {
           </select>
         </label>
         <label className="text-sm sm:col-span-2">
-          Description
-          <textarea
+          <T>{"Description"}</T>
+          <LocalizedTextarea
             name="description"
             required
             minLength={3}
@@ -76,10 +85,14 @@ export function MaintenanceReport() {
           />
         </label>
         <Button disabled={pending}>
-          {pending ? "Saving..." : "Create report"}
+          <T>{pending ? "Saving..." : "Create report"}</T>
         </Button>
       </fieldset>
-      {error && <p role="alert">{error}</p>}
+      {error && (
+        <p role="alert">
+          <T>{error}</T>
+        </p>
+      )}
     </form>
   );
 }
@@ -134,7 +147,7 @@ export function MaintenanceUpdate({
     >
       <fieldset disabled={pending} className="space-y-3">
         <label className="block">
-          Action
+          <T>{"Action"}</T>
           <select name="action" className="ml-3 rounded border p-2">
             {actions.map((a) => (
               <option key={a}>{a}</option>
@@ -143,16 +156,18 @@ export function MaintenanceUpdate({
         </label>
         {management && (
           <label className="block">
-            Assignee (ASSIGN action only)
+            <T>{"Assignee (ASSIGN action only)"}</T>
             <select
               name="assignee"
               defaultValue={assignedTo ?? ""}
               className="ml-3 rounded border p-2"
             >
-              <option value="">Unassigned</option>
+              <option value="">
+                <T>{"Unassigned"}</T>
+              </option>
               {assignedTo && !staff.some((s) => s.id === assignedTo) && (
                 <option value={assignedTo}>
-                  Inactive assignee - select another
+                  <T>{"Inactive assignee - select another"}</T>
                 </option>
               )}
               {staff.map((s) => (
@@ -164,18 +179,22 @@ export function MaintenanceUpdate({
           </label>
         )}
         <label className="block">
-          Note / resolution (required for NOTE, COMPLETE and CANCEL)
-          <textarea
+          <T>{"Note / resolution (required for NOTE, COMPLETE and CANCEL)"}</T>
+          <LocalizedTextarea
             name="note"
             maxLength={1800}
             className="mt-1 block w-full rounded border p-3"
           />
         </label>
         <Button disabled={pending}>
-          {pending ? "Saving..." : "Update task"}
+          <T>{pending ? "Saving..." : "Update task"}</T>
         </Button>
       </fieldset>
-      {error && <p role="alert">{error}</p>}
+      {error && (
+        <p role="alert">
+          <T>{error}</T>
+        </p>
+      )}
     </form>
   );
 }

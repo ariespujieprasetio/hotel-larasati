@@ -1,3 +1,5 @@
+// localized-ui
+import { T } from "@/components/i18n/language-provider";
 import Link from "next/link";
 import { listStays } from "@/lib/services/stays";
 import { requireRole } from "@/lib/services/auth";
@@ -26,14 +28,21 @@ export default async function CheckoutPage({
   const today = jakartaDate();
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-semibold">Check-out</h1>
+      <h1 className="text-3xl font-semibold">
+        <T>{"Check-out"}</T>
+      </h1>
       <p className="text-muted-foreground">
-        Review the guest bill and settle room and extra charges before
-        departure. Early departure retains the agreed booking total.
+        <T>
+          {
+            "Review the guest bill and settle room and extra charges before departure. Early departure retains the agreed booking total."
+          }
+        </T>
       </p>
       <div className="divide-y rounded-xl border bg-card">
         {!stays.length && (
-          <p className="p-6">No guests currently checked in.</p>
+          <p className="p-6">
+            <T>{"No guests currently checked in."}</T>
+          </p>
         )}
         {stays.map((s) => {
           const r = bookings.find((b) => b.id === s.reservation_id);
@@ -43,22 +52,27 @@ export default async function CheckoutPage({
           return (
             <article key={s.id} className="space-y-2 p-5">
               <h2 className="font-semibold">
-                Room {rooms.find((r) => r.id === s.room_id)?.room_number}{" "}
+                <T>{"Room "}</T>
+                {rooms.find((r) => r.id === s.room_id)?.room_number}
+                <T> </T>
                 &middot; {guests.find((g) => g.id === r?.guest_id)?.full_name}
               </h2>
               <p className="text-sm">
-                Expected departure: {r?.check_out_date}
-                {r && r.check_out_date <= today
-                  ? " \u00b7 Due for departure"
-                  : ""}
+                <T>{"Expected departure: "}</T>
+                {r?.check_out_date}
+                <T>
+                  {r && r.check_out_date <= today
+                    ? " \u00b7 Due for departure"
+                    : ""}
+                </T>
               </p>
               {f ? (
                 <Link className="underline" href={"/folios/" + f.id}>
-                  Review bill & check out
+                  <T>{"Review bill & check out"}</T>
                 </Link>
               ) : (
                 <p role="alert">
-                  Bill unavailable. Contact your administrator.
+                  <T>{"Bill unavailable. Contact your administrator."}</T>
                 </p>
               )}
             </article>
@@ -66,9 +80,20 @@ export default async function CheckoutPage({
         })}
       </div>
       <nav aria-label="Pagination" className="flex gap-4">
-        {page > 1 && <Link href={"?page=" + (page - 1)}>Previous</Link>}
-        <span>Page {page}</span>
-        {page * 20 < count && <Link href={"?page=" + (page + 1)}>Next</Link>}
+        {page > 1 && (
+          <Link href={"?page=" + (page - 1)}>
+            <T>{"Previous"}</T>
+          </Link>
+        )}
+        <span>
+          <T>{"Page "}</T>
+          {page}
+        </span>
+        {page * 20 < count && (
+          <Link href={"?page=" + (page + 1)}>
+            <T>{"Next"}</T>
+          </Link>
+        )}
       </nav>
     </div>
   );

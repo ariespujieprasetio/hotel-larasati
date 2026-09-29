@@ -1,7 +1,15 @@
 "use client";
+// localized-ui
+import {
+  LocalizedTextarea,
+  LocalizedInput,
+  T,
+} from "@/components/i18n/language-provider";
+
 import { useState } from "react";
 import { useRouter, unstable_rethrow } from "next/navigation";
 import Link from "next/link";
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { roomTypeSchema, type RoomTypeInput } from "@/lib/validations/rooms";
@@ -11,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Field, controlClass } from "./form-fields";
 export function RoomTypeForm({ roomType }: { roomType?: RoomType }) {
+  const { t } = useLanguage();
   const router = useRouter();
   const [error, setError] = useState("");
   const {
@@ -41,7 +50,9 @@ export function RoomTypeForm({ roomType }: { roomType?: RoomType }) {
       roomType?.is_active &&
       !values.is_active &&
       !window.confirm(
-        "Deactivate this room type? All its rooms must be inactive or reassigned first.",
+        t(
+          "Deactivate this room type? All its rooms must be inactive or reassigned first.",
+        ),
       )
     )
       return;
@@ -73,7 +84,7 @@ export function RoomTypeForm({ roomType }: { roomType?: RoomType }) {
         label="Description"
         error={errors.description?.message}
       >
-        <textarea
+        <LocalizedTextarea
           id="description"
           rows={3}
           className={controlClass + " h-auto py-2"}
@@ -144,20 +155,22 @@ export function RoomTypeForm({ roomType }: { roomType?: RoomType }) {
         />
       </Field>
       <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" {...register("is_active")} />
-        Active room type
+        <LocalizedInput type="checkbox" {...register("is_active")} />
+        <T>{"Active room type"}</T>
       </label>
       {error && (
         <p role="alert" className="text-sm text-destructive">
-          {error}
+          <T>{error}</T>
         </p>
       )}
       <div className="flex gap-3">
         <Button disabled={isSubmitting}>
-          {isSubmitting ? "Saving…" : "Save room type"}
+          <T>{isSubmitting ? "Saving…" : "Save room type"}</T>
         </Button>
         <Button variant="outline" asChild>
-          <Link href="/rooms/types">Cancel</Link>
+          <Link href="/rooms/types">
+            <T>{"Cancel"}</T>
+          </Link>
         </Button>
       </div>
     </form>

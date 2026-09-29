@@ -1,4 +1,7 @@
 "use client";
+// localized-ui
+import { T, LocalizedInput } from "@/components/i18n/language-provider";
+
 import { useState, useTransition } from "react";
 import { useRouter, unstable_rethrow } from "next/navigation";
 import { createStaff, updateStaff } from "@/app/(dashboard)/users/actions";
@@ -65,8 +68,8 @@ export function StaffForm({
     >
       <fieldset disabled={pending} className="space-y-4">
         <label className="block text-sm">
-          Full name
-          <input
+          <T>{"Full name"}</T>
+          <LocalizedInput
             name="full_name"
             defaultValue={staff?.full_name ?? ""}
             maxLength={150}
@@ -77,16 +80,19 @@ export function StaffForm({
         </label>
         {staff ? (
           <div className="text-sm">
-            Email: <span className="font-medium">{staff.email}</span>
+            <T>{"Email: "}</T>
+            <span className="font-medium">{staff.email}</span>
             <p className="mt-1 text-muted-foreground">
-              Email changes are managed through Supabase Authentication.
+              <T>
+                {"Email changes are managed through Supabase Authentication."}
+              </T>
             </p>
           </div>
         ) : (
           <>
             <label className="block text-sm">
-              Staff email
-              <input
+              <T>{"Staff email"}</T>
+              <LocalizedInput
                 name="email"
                 type="email"
                 required
@@ -96,8 +102,8 @@ export function StaffForm({
               />
             </label>
             <label className="block text-sm">
-              Initial password
-              <input
+              <T>{"Initial password"}</T>
+              <LocalizedInput
                 name="password"
                 type="password"
                 required
@@ -108,14 +114,17 @@ export function StaffForm({
               />
             </label>
             <p className="text-sm text-muted-foreground">
-              Use at least 12 characters. Give the credentials directly to the
-              staff member; no invitation email is sent.
+              <T>
+                {
+                  "Use at least 12 characters. Give the credentials directly to the staff member; no invitation email is sent."
+                }
+              </T>
             </p>
           </>
         )}
         <label className="block text-sm">
-          Phone (optional)
-          <input
+          <T>{"Phone (optional)"}</T>
+          <LocalizedInput
             name="phone"
             type="tel"
             defaultValue={staff?.phone ?? ""}
@@ -124,46 +133,61 @@ export function StaffForm({
           />
         </label>
         <label className="block text-sm">
-          Role
+          <T>{"Role"}</T>
           <select
             name="role"
             disabled={own}
             defaultValue={staff?.role ?? "HOUSEKEEPING"}
             className="mt-1 h-10 w-full rounded-md border px-3"
           >
-            {staffRoles.map((role) => (
-              <option key={role} value={role}>
-                {role.replaceAll("_", " ")}
-              </option>
-            ))}
+            <T>
+              {staffRoles.map((role) => (
+                <option key={role} value={role}>
+                  {role.replaceAll("_", " ")}
+                </option>
+              ))}
+            </T>
           </select>
         </label>
         <label className="flex items-start gap-2 text-sm">
-          <input
+          <LocalizedInput
             name="is_active"
             type="checkbox"
             disabled={own}
             defaultChecked={staff?.is_active ?? true}
             className="mt-1"
           />
-          Active account - allow access according to this role
+          <T>{"Active account - allow access according to this role"}</T>
         </label>
         {own && (
           <p className="text-sm text-muted-foreground">
-            Ask another owner to change your own role or active status.
+            <T>
+              {"Ask another owner to change your own role or active status."}
+            </T>
           </p>
         )}
         {staff && (
           <p className="text-sm text-muted-foreground">
-            Deactivation removes app access. Existing housekeeping assignments
-            remain in history; reassign open jobs in Housekeeping.
+            <T>
+              {
+                "Deactivation removes app access. Existing housekeeping assignments remain in history; reassign open jobs in Housekeeping."
+              }
+            </T>
           </p>
         )}
         {!staff && (
           <label className="flex items-start gap-2 text-sm">
-            <input name="verified" type="checkbox" required className="mt-1" />I
-            verified that this email belongs to the staff member and approve
-            this account.
+            <LocalizedInput
+              name="verified"
+              type="checkbox"
+              required
+              className="mt-1"
+            />
+            <T>
+              {
+                "I verified that this email belongs to the staff member and approve this account."
+              }
+            </T>
           </label>
         )}
         <Button disabled={pending}>
@@ -176,7 +200,7 @@ export function StaffForm({
       </fieldset>
       {error && (
         <p role="alert" className="text-sm text-destructive">
-          {error}
+          <T>{error}</T>
         </p>
       )}
     </form>

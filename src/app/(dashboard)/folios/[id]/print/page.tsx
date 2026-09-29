@@ -1,3 +1,5 @@
+// localized-ui
+import { T } from "@/components/i18n/language-provider";
 import Link from "next/link";
 import { getPrintableFolio } from "@/lib/services/billing";
 import { money } from "@/lib/reservations";
@@ -34,12 +36,15 @@ export default async function PrintFolio({
     <div className="bill-container">
       <nav className="bill-controls">
         <Link href={"/folios/" + id} className="underline">
-          Back to bill
+          <T>{"Back to bill"}</T>
         </Link>
         <PrintButton />
         <p>
-          Choose Save as PDF in the print dialog. Refresh this page before
-          printing an open bill.
+          <T>
+            {
+              "Choose Save as PDF in the print dialog. Refresh this page before printing an open bill."
+            }
+          </T>
         </p>
       </nav>
       <article className="guest-bill">
@@ -52,54 +57,77 @@ export default async function PrintFolio({
         </header>
         <div className="bill-heading">
           <div>
-            <h2>Guest bill</h2>
+            <h2>
+              <T>{"Guest bill"}</T>
+            </h2>
             <p>
               {f.folio_number} &middot; {f.reservation_number}
             </p>
           </div>
           <strong>
-            {f.balance === 0 ? "PAID" : "BALANCE DUE"} &middot;{" "}
-            {f.closed_at ? "CLOSED" : "OPEN"}
+            <T>{f.balance === 0 ? "PAID" : "BALANCE DUE"}</T> &middot;<T> </T>
+            <T>{f.closed_at ? "CLOSED" : "OPEN"}</T>
           </strong>
         </div>
         <dl className="bill-details">
           <div>
-            <dt>Guest</dt>
+            <dt>
+              <T>{"Guest"}</T>
+            </dt>
             <dd>{f.guest_name}</dd>
           </div>
           <div>
-            <dt>Room</dt>
+            <dt>
+              <T>{"Room"}</T>
+            </dt>
             <dd>{f.room_number}</dd>
           </div>
           <div>
-            <dt>Scheduled arrival</dt>
+            <dt>
+              <T>{"Scheduled arrival"}</T>
+            </dt>
             <dd>{d.arrival}</dd>
           </div>
           <div>
-            <dt>Scheduled departure</dt>
+            <dt>
+              <T>{"Scheduled departure"}</T>
+            </dt>
             <dd>{d.departure}</dd>
           </div>
           <div>
-            <dt>Bill opened (WIB)</dt>
+            <dt>
+              <T>{"Bill opened (WIB)"}</T>
+            </dt>
             <dd>{billingDate(f.created_at)}</dd>
           </div>
           <div>
-            <dt>Bill closed (WIB)</dt>
+            <dt>
+              <T>{"Bill closed (WIB)"}</T>
+            </dt>
             <dd>{f.closed_at ? billingDate(f.closed_at) : "Still open"}</dd>
           </div>
         </dl>
-        <h3>Charges ({f.currency})</h3>
+        <h3>
+          <T>{"Charges ("}</T>
+          {f.currency})
+        </h3>
         <table>
           <thead>
             <tr>
-              <th>Description</th>
-              <th className="amount">Amount</th>
+              <th>
+                <T>{"Description"}</T>
+              </th>
+              <th className="amount">
+                <T>{"Amount"}</T>
+              </th>
             </tr>
           </thead>
           <tbody>
             {rows.map(([label, value]) => (
               <tr key={label}>
-                <td>{label}</td>
+                <td>
+                  <T>{label}</T>
+                </td>
                 <td className="amount">{money(value, f.currency)}</td>
               </tr>
             ))}
@@ -108,8 +136,10 @@ export default async function PrintFolio({
                 <td>
                   {e.description}
                   <span className="block text-xs">
-                    {e.quantity} x {money(e.unit_price, f.currency)} (final
-                    price)
+                    {e.quantity}
+                    <T>{" x "}</T>
+                    {money(e.unit_price, f.currency)}
+                    <T>{" (final price)"}</T>
                   </span>
                 </td>
                 <td className="amount">{money(e.amount, f.currency)}</td>
@@ -119,60 +149,79 @@ export default async function PrintFolio({
         </table>
         <dl className="bill-totals">
           <div>
-            <dt>Total bill</dt>
+            <dt>
+              <T>{"Total bill"}</T>
+            </dt>
             <dd>{money(f.total_amount, f.currency)}</dd>
           </div>
           <div>
-            <dt>Net payments</dt>
+            <dt>
+              <T>{"Net payments"}</T>
+            </dt>
             <dd>{money(f.paid_amount, f.currency)}</dd>
           </div>
           <div>
-            <dt>Balance due</dt>
+            <dt>
+              <T>{"Balance due"}</T>
+            </dt>
             <dd>{money(f.balance, f.currency)}</dd>
           </div>
         </dl>
-        <h3>Payment history</h3>
-        {!d.payments.length ? (
-          <p>No payments recorded.</p>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Date (WIB)</th>
-                <th>Entry / method</th>
-                <th className="amount">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {d.payments.map((p) => (
-                <tr key={p.id}>
-                  <td>{billingDate(p.created_at)}</td>
-                  <td>
-                    {p.kind === "REVERSAL" ? "Reversal" : "Payment"} /{" "}
-                    {p.method.replaceAll("_", " ")}
-                  </td>
-                  <td className="amount">
-                    {money(
-                      p.kind === "REVERSAL" ? -p.amount : p.amount,
-                      f.currency,
-                    )}
-                  </td>
+        <h3>
+          <T>{"Payment history"}</T>
+        </h3>
+        <T>
+          {!d.payments.length ? (
+            <p>No payments recorded.</p>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th>Date (WIB)</th>
+                  <th>Entry / method</th>
+                  <th className="amount">Amount</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+              </thead>
+              <tbody>
+                {d.payments.map((p) => (
+                  <tr key={p.id}>
+                    <td>{billingDate(p.created_at)}</td>
+                    <td>
+                      {p.kind === "REVERSAL" ? "Reversal" : "Payment"} /{" "}
+                      {p.method.replaceAll("_", " ")}
+                    </td>
+                    <td className="amount">
+                      {money(
+                        p.kind === "REVERSAL" ? -p.amount : p.amount,
+                        f.currency,
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </T>
         <footer>
           <p>
-            Extra charges use final prices. Cancelled charges are excluded.
-            Reversals reduce recorded payments.
+            <T>
+              {
+                "Extra charges use final prices. Cancelled charges are excluded. Reversals reduce recorded payments."
+              }
+            </T>
           </p>
           <p>
-            Generated {billingDate(d.generated_at)} WIB &middot; Bill version{" "}
-            {f.version}. Hotel contact details are current at printing.
+            <T>{"Generated "}</T>
+            {billingDate(d.generated_at)}
+            <T>{" WIB \u00b7 Bill version"}</T>
+            <T> </T>
+            {f.version}
+            <T>{". Hotel contact details are current at printing."}</T>
           </p>
           {!f.closed_at && (
-            <p>This bill is open and may change before checkout.</p>
+            <p>
+              <T>{"This bill is open and may change before checkout."}</T>
+            </p>
           )}
         </footer>
       </article>

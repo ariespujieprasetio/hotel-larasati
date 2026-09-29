@@ -1,3 +1,5 @@
+// localized-ui
+import { T } from "@/components/i18n/language-provider";
 import { money } from "@/lib/reservations";
 import type { ReservationPreview } from "@/types/reservations";
 export function QuoteSummary({
@@ -25,7 +27,9 @@ export function QuoteSummary({
         ["Grand total", quote.total_amount],
       ].map(([label, amount]) => (
         <div key={String(label)} className="flex justify-between gap-4">
-          <dt>{label}</dt>
+          <dt>
+            <T>{label}</T>
+          </dt>
           <dd className="font-semibold">
             {money(Number(amount), quote.currency)}
           </dd>

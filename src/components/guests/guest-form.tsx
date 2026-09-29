@@ -1,5 +1,13 @@
 "use client";
+// localized-ui
+import {
+  T,
+  LocalizedTextarea,
+  LocalizedInput,
+} from "@/components/i18n/language-provider";
+
 import Link from "next/link";
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState } from "react";
 import { useRouter, unstable_rethrow } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -28,6 +36,7 @@ const fields = [
   { name: "company_name", label: "Company name", type: "text", max: 150 },
 ] as const;
 export function GuestForm({ guest }: { guest?: Guest }) {
+  const { t } = useLanguage();
   const router = useRouter();
   const [error, setError] = useState("");
   const {
@@ -58,7 +67,7 @@ export function GuestForm({ guest }: { guest?: Guest }) {
       guest?.is_active &&
       !values.is_active &&
       !window.confirm(
-        "Deactivate this guest? Their record and history will be retained.",
+        t("Deactivate this guest? Their record and history will be retained."),
       )
     )
       return;
@@ -83,12 +92,17 @@ export function GuestForm({ guest }: { guest?: Guest }) {
       className="max-w-4xl space-y-6 rounded-xl border bg-card p-6"
     >
       <p className="text-sm text-muted-foreground">
-        Full name is required. Identity and contact details can be completed
-        later. Guest codes are assigned automatically.
+        <T>
+          {
+            "Full name is required. Identity and contact details can be completed later. Guest codes are assigned automatically."
+          }
+        </T>
       </p>
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="id_type">Identity type</Label>
+          <Label htmlFor="id_type">
+            <T>{"Identity type"}</T>
+          </Label>
           <select id="id_type" className={control} {...register("id_type")}>
             {identityTypes.map((t) => (
               <option key={t}>{t}</option>
@@ -96,18 +110,32 @@ export function GuestForm({ guest }: { guest?: Guest }) {
           </select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="gender">Gender</Label>
+          <Label htmlFor="gender">
+            <T>{"Gender"}</T>
+          </Label>
           <select id="gender" className={control} {...register("gender")}>
-            <option value="">Not recorded</option>
-            <option value="MALE">Male</option>
-            <option value="FEMALE">Female</option>
-            <option value="OTHER">Other</option>
-            <option value="PREFER_NOT_TO_SAY">Prefer not to say</option>
+            <option value="">
+              <T>{"Not recorded"}</T>
+            </option>
+            <option value="MALE">
+              <T>{"Male"}</T>
+            </option>
+            <option value="FEMALE">
+              <T>{"Female"}</T>
+            </option>
+            <option value="OTHER">
+              <T>{"Other"}</T>
+            </option>
+            <option value="PREFER_NOT_TO_SAY">
+              <T>{"Prefer not to say"}</T>
+            </option>
           </select>
         </div>
         {fields.map((field) => (
           <div key={field.name} className="space-y-2">
-            <Label htmlFor={field.name}>{field.label}</Label>
+            <Label htmlFor={field.name}>
+              <T>{field.label}</T>
+            </Label>
             <Input
               id={field.name}
               type={field.type}
@@ -120,24 +148,26 @@ export function GuestForm({ guest }: { guest?: Guest }) {
                 errors[field.name] ? field.name + "-error" : undefined
               }
             />
-            {errors[field.name] && (
-              <p
-                role="alert"
-                id={field.name + "-error"}
-                className="text-sm text-destructive"
-              >
-                {errors[field.name]?.message}
-              </p>
-            )}
+            <T>
+              {errors[field.name] && (
+                <p
+                  role="alert"
+                  id={field.name + "-error"}
+                  className="text-sm text-destructive"
+                >
+                  {errors[field.name]?.message}
+                </p>
+              )}
+            </T>
           </div>
         ))}
       </div>
       {(["address", "notes"] as const).map((name) => (
         <div key={name} className="space-y-2">
           <Label htmlFor={name}>
-            {name === "address" ? "Address" : "Guest notes"}
+            <T>{name === "address" ? "Address" : "Guest notes"}</T>
           </Label>
-          <textarea
+          <LocalizedTextarea
             id={name}
             rows={3}
             maxLength={name === "address" ? 1000 : 2000}
@@ -145,31 +175,35 @@ export function GuestForm({ guest }: { guest?: Guest }) {
             {...register(name)}
             aria-invalid={!!errors[name]}
           />
-          {errors[name] && (
-            <p role="alert" className="text-sm text-destructive">
-              {errors[name]?.message}
-            </p>
-          )}
+          <T>
+            {errors[name] && (
+              <p role="alert" className="text-sm text-destructive">
+                {errors[name]?.message}
+              </p>
+            )}
+          </T>
         </div>
       ))}
       <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" {...register("is_active")} />
-        Active guest record
+        <LocalizedInput type="checkbox" {...register("is_active")} />
+        <T>{"Active guest record"}</T>
       </label>
       {error && (
         <p
           role="alert"
           className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive"
         >
-          {error}
+          <T>{error}</T>
         </p>
       )}
       <div className="flex gap-3">
         <Button disabled={isSubmitting}>
-          {isSubmitting ? "Saving…" : "Save guest"}
+          <T>{isSubmitting ? "Saving…" : "Save guest"}</T>
         </Button>
         <Button asChild variant="outline">
-          <Link href={guest ? "/guests/" + guest.id : "/guests"}>Cancel</Link>
+          <Link href={guest ? "/guests/" + guest.id : "/guests"}>
+            <T>{"Cancel"}</T>
+          </Link>
         </Button>
       </div>
     </form>

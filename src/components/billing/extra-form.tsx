@@ -1,4 +1,7 @@
 "use client";
+// localized-ui
+import { T, LocalizedInput } from "@/components/i18n/language-provider";
+
 import { useRef, useState, useTransition } from "react";
 import { useRouter, unstable_rethrow } from "next/navigation";
 import { addExtra, voidExtra } from "@/app/(dashboard)/folios/actions";
@@ -55,15 +58,22 @@ export function ExtraForm({
         });
       }}
     >
-      <h2 className="text-xl font-semibold">Add extra charge</h2>
+      <h2 className="text-xl font-semibold">
+        <T>{"Add extra charge"}</T>
+      </h2>
       <p className="text-sm text-muted-foreground">
-        Use the final unit price in {currency}, including any applicable tax or
-        service. No additional percentages are applied.
+        <T>{"Use the final unit price in "}</T>
+        {currency}
+        <T>
+          {
+            ", including any applicable tax or service. No additional percentages are applied."
+          }
+        </T>
       </p>
       <fieldset disabled={pending} className="space-y-3">
         <label className="block text-sm">
-          Service or item
-          <input
+          <T>{"Service or item"}</T>
+          <LocalizedInput
             name="description"
             required
             minLength={2}
@@ -73,8 +83,8 @@ export function ExtraForm({
           />
         </label>
         <label className="block text-sm">
-          Quantity
-          <input
+          <T>{"Quantity"}</T>
+          <LocalizedInput
             name="quantity"
             type="number"
             required
@@ -86,8 +96,9 @@ export function ExtraForm({
           />
         </label>
         <label className="block text-sm">
-          Final unit price ({currency})
-          <input
+          <T>{"Final unit price ("}</T>
+          {currency})
+          <LocalizedInput
             name="unitPrice"
             type="number"
             required
@@ -98,21 +109,25 @@ export function ExtraForm({
           />
         </label>
         <label className="flex gap-2 text-sm">
-          <input type="checkbox" required />I verified this charge and checked
-          it has not already been recorded.
+          <LocalizedInput type="checkbox" required />
+          <T>
+            {
+              "I verified this charge and checked it has not already been recorded."
+            }
+          </T>
         </label>
         <Button disabled={pending}>
-          {pending ? "Saving..." : "Add charge"}
+          <T>{pending ? "Saving..." : "Add charge"}</T>
         </Button>
       </fieldset>
       {error && (
         <p role="alert" className="text-sm text-destructive">
-          {error}
+          <T>{error}</T>
         </p>
       )}
       {success && (
         <p role="status" className="text-sm">
-          Charge added.
+          <T>{"Charge added."}</T>
         </p>
       )}
     </form>
@@ -150,8 +165,8 @@ export function VoidExtraForm({
       }}
     >
       <label className="text-sm">
-        Cancellation reason
-        <input
+        <T>{"Cancellation reason"}</T>
+        <LocalizedInput
           name="reason"
           required
           minLength={3}
@@ -161,11 +176,11 @@ export function VoidExtraForm({
         />
       </label>
       <Button variant="outline" disabled={pending}>
-        {pending ? "Cancelling..." : "Cancel charge"}
+        <T>{pending ? "Cancelling..." : "Cancel charge"}</T>
       </Button>
       {error && (
         <p role="alert" className="w-full text-sm text-destructive">
-          {error}
+          <T>{error}</T>
         </p>
       )}
     </form>

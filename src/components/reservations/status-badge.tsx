@@ -1,3 +1,5 @@
+// localized-ui
+import { T } from "@/components/i18n/language-provider";
 import type { ReservationStatus } from "@/types/reservations";
 const colors: Record<ReservationStatus, string> = {
   PENDING: "bg-amber-100 text-amber-900",
@@ -15,7 +17,7 @@ export function ReservationBadge({ status }: { status: ReservationStatus }) {
         colors[status]
       }
     >
-      {status.replaceAll("_", " ")}
+      <T>{status.replaceAll("_", " ")}</T>
     </span>
   );
 }

@@ -2,27 +2,27 @@
 @import "tw-animate-css";
 @custom-variant dark (&:is(.dark *));
 :root {
-  --background: #f7f8fa;
-  --foreground: #202d32;
+  --background: #f6f4ee;
+  --foreground: #292824;
   --card: #ffffff;
-  --card-foreground: #202d32;
+  --card-foreground: #292824;
   --popover: #ffffff;
   --popover-foreground: #202d32;
-  --primary: #234d43;
+  --primary: #806027;
   --primary-foreground: #ffffff;
-  --secondary: #edf2ef;
-  --secondary-foreground: #234d43;
-  --muted: #eef1f3;
-  --muted-foreground: #647078;
-  --accent: #edf2ef;
-  --accent-foreground: #234d43;
+  --secondary: #eee8dc;
+  --secondary-foreground: #574626;
+  --muted: #f0ede6;
+  --muted-foreground: #747168;
+  --accent: #eee8dc;
+  --accent-foreground: #574626;
   --destructive: #b42318;
-  --border: #e1e6e8;
-  --input: #d4dcdf;
-  --ring: #397767;
-  --radius: 0.75rem;
-  --sidebar: #183a33;
-  --sidebar-foreground: #ffffff;
+  --border: #e6e1d7;
+  --input: #d8d1c4;
+  --ring: #a08349;
+  --radius: 0.625rem;
+  --sidebar: #252723;
+  --sidebar-foreground: #f4f0e7;
 }
 @theme inline {
   --color-background: var(--background);
@@ -49,7 +49,7 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --font-sans: Arial, Helvetica, sans-serif;
+  --font-sans: "Segoe UI", ui-sans-serif, system-ui, sans-serif;
 }
 @layer base {
   * {
@@ -58,8 +58,85 @@
   body {
     @apply bg-background text-foreground font-sans;
   }
+  ::selection {
+    background: #e8d9b6;
+    color: #292824;
+  }
   button:not(:disabled),
   a {
     -webkit-tap-highlight-color: transparent;
   }
+}
+
+/* Shared workspace treatment, scoped away from printed guest bills. */
+.workspace-content h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+}
+.workspace-content
+  :is(
+    input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+    select,
+    textarea
+  ) {
+  background-color: #fff;
+  border: 1px solid var(--input);
+  border-radius: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0.6rem 0.75rem;
+  color: var(--foreground);
+  max-width: 100%;
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+}
+.workspace-content :is(input, select, textarea):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.workspace-content :is(input, select, textarea):disabled {
+  opacity: 0.6;
+}
+.workspace-content table thead {
+  background: #f5f2eb;
+}
+.workspace-content table thead th {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #777166;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+.workspace-content table tbody tr {
+  transition: background-color 150ms;
+}
+.workspace-content table tbody tr:hover {
+  background-color: #faf8f3;
+}
+.workspace-content table td {
+  font-variant-numeric: tabular-nums;
+}
+.workspace-content table a {
+  text-decoration-color: #c5ad7d;
+  text-underline-offset: 4px;
+}
+.workspace-nav {
+  scrollbar-width: thin;
+  scrollbar-color: #5b5b50 transparent;
+}
+.workspace-nav summary::-webkit-details-marker {
+  display: none;
+}
+.workspace-nav details[open] summary .nav-chevron {
+  transform: rotate(90deg);
+}
+.premium-eyebrow {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
