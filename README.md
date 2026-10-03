@@ -41,6 +41,8 @@ Without environment variables, the login page displays setup instructions and di
 
 Room, guest, reservation, check-in, room billing, payment recording, checkout, housekeeping, maintenance, expenses, reports and audit logs are implemented. Sidebar entries are linked to their completed modules. Recharts and date-fns support report presentation. A separate server-only admin client is used only to create staff Auth accounts; application data writes still use the authenticated staff session.
 
+Panduan penggunaan harian tersedia di [docs/PANDUAN_OPERASIONAL.md](docs/PANDUAN_OPERASIONAL.md), mulai dari membuat reservasi sampai check-in, pembayaran, pindah kamar, housekeeping, check-out, dan laporan.
+
 ## Files and responsibilities
 
 - `src/app/(auth)`: login page and server actions.
