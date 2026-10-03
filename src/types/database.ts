@@ -78,6 +78,19 @@ export type Database = {
       folios: Table<Folio, never>;
       payments: Table<Payment, never>;
       stays: Table<Stay, never>;
+      room_move_activity: Table<
+        {
+          id: string;
+          reservation_id: string;
+          stay_id: string;
+          from_room_id: string;
+          to_room_id: string;
+          reason: string;
+          user_id: string;
+          created_at: string;
+        },
+        never
+      >;
       reservations: Table<Reservation, never>;
       reservation_activity: Table<ReservationActivity, never>;
       guests: Table<
@@ -242,6 +255,15 @@ export type Database = {
 
       check_in_reservation: {
         Args: { p_id: string; p_version: number };
+        Returns: string;
+      };
+      move_checked_in_guest: {
+        Args: {
+          p_reservation: string;
+          p_version: number;
+          p_room: string;
+          p_reason: string;
+        };
         Returns: string;
       };
       reservation_preview: {

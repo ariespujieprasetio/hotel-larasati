@@ -3,6 +3,7 @@ import { T } from "@/components/i18n/language-provider";
 import Link from "next/link";
 import { listStays } from "@/lib/services/stays";
 import { jakartaDate } from "@/lib/guests";
+import { RoomMoveForm } from "@/components/reservations/room-move-form";
 export const metadata = { title: "In-house guests" };
 export default async function InHousePage({
   searchParams,
@@ -12,6 +13,18 @@ export default async function InHousePage({
   const query = await searchParams;
   const page = Math.max(1, Math.min(10000, Number(query.page) || 1)) | 0;
   const { stays, bookings, guests, rooms, count } = await listStays(page);
+  const roomOptions = stays.length
+    ? (
+        await (
+          await import("@/lib/services/auth")
+        ).requireRole(["OWNER", "MANAGER", "FRONT_OFFICE"])
+      ).supabase
+        .from("rooms")
+        .select("id,room_number,room_type_id")
+        .eq("is_active", true)
+        .in("status", ["AVAILABLE", "INSPECTED"])
+    : null;
+  const availableRooms = roomOptions ? ((await roomOptions).data ?? []) : [];
   const today = jakartaDate();
   return (
     <div className="space-y-6">
@@ -80,6 +93,15 @@ export default async function InHousePage({
               >
                 <T>{"View reservation"}</T>
               </Link>
+              <RoomMoveForm
+                reservationId={s.reservation_id}
+                version={r?.version ?? 0}
+                rooms={availableRooms.filter(
+                  (room) =>
+                    room.room_type_id === r?.room_type_id &&
+                    room.id !== s.room_id,
+                )}
+              />
             </article>
           );
         })}

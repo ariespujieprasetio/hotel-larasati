@@ -3,10 +3,11 @@ import assert from "node:assert/strict";
 import { parseLocale, translate } from "../src/lib/i18n/messages";
 import { paymentReportCsv } from "../src/lib/payment-reports";
 
-test("locale is allowlisted and defaults to Indonesian", () => {
+test("locale is allowlisted and defaults to English", () => {
   assert.equal(parseLocale("en"), "en");
-  for (const value of [undefined, "id", "fr", "<script>"])
-    assert.equal(parseLocale(value), "id");
+  assert.equal(parseLocale("id"), "id");
+  for (const value of [undefined, "fr", "<script>"])
+    assert.equal(parseLocale(value), "en");
 });
 test("UI translations preserve whitespace, status values and English source", () => {
   assert.equal(translate("id", " Rooms "), " Kamar ");

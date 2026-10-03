@@ -1,7 +1,7 @@
 export type Locale = "id" | "en";
 export const localeCookie = "larasati-language";
 export function parseLocale(value: unknown): Locale {
-  return value === "en" ? "en" : "id";
+  return value === "id" ? "id" : "en";
 }
 
 // English source messages are stable keys. User-entered records never pass through this catalog.

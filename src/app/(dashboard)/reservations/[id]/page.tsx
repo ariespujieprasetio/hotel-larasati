@@ -8,6 +8,9 @@ import { ReservationBadge } from "@/components/reservations/status-badge";
 import { ReservationStatusForm } from "@/components/reservations/status-form";
 import { QuoteSummary } from "@/components/reservations/summary";
 import { Button } from "@/components/ui/button";
+import { RoomMoveForm } from "@/components/reservations/room-move-form";
+import { requireRole } from "@/lib/services/auth";
+import { reservationRoles } from "@/lib/reservations";
 export const metadata = { title: "Reservation details" };
 export default async function ReservationDetail({
   params,
@@ -19,6 +22,16 @@ export default async function ReservationDetail({
   const { id } = await params;
   const [{ reservation: r, guest, room, roomType, activity }, query] =
     await Promise.all([getReservationContext(id), searchParams]);
+  let availableRooms: { id: string; room_number: string; room_type_id: string }[] = [];
+  if (r.status === "CHECKED_IN") {
+    const { supabase } = await requireRole(reservationRoles);
+    const { data } = await supabase
+      .from("rooms")
+      .select("id,room_number,room_type_id")
+      .eq("is_active", true)
+      .in("status", ["AVAILABLE", "INSPECTED"]);
+    availableRooms = data ?? [];
+  }
   return (
     <div className="space-y-6">
       <Link className="text-sm underline" href="/reservations">
@@ -134,9 +147,20 @@ export default async function ReservationDetail({
             />
           )}
           {r.status === "CHECKED_IN" && (
-            <Link href="/in-house" className="underline">
-              <T>{"View in-house guests"}</T>
-            </Link>
+            <>
+              <Link href="/in-house" className="underline">
+                <T>{"View in-house guests"}</T>
+              </Link>
+              <RoomMoveForm
+                reservationId={r.id}
+                version={r.version}
+                rooms={availableRooms.filter(
+                  (candidate) =>
+                    candidate.room_type_id === r.room_type_id &&
+                    candidate.id !== room.id,
+                )}
+              />
+            </>
           )}
           <p className="text-sm text-muted-foreground">
             <T>
